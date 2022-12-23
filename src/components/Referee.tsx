@@ -1,4 +1,5 @@
 import React from "react"
+import { isTemplateExpression } from "typescript"
 import { Color, initialBoard, PieceType } from "../Constants"
 import { Piece, Position } from "../models"
 import Chessboard from "./Chessboard"
@@ -7,6 +8,7 @@ import Header from "./Header"
 import PromotionModal from "./PromotionModal"
 
 function Referee() {
+    const [castleMove, setCastleMove] = React.useState<Position[]>([])
     const promotionModalRef = React.useRef<HTMLDivElement>(null)
     const [promotionPawn, setPromotionPawn] = React.useState<Piece | null>(null)
     const [pieces, setPieces] = React.useState<Piece[]>(initialBoard) //can be changed to object later for faster access
@@ -15,6 +17,50 @@ function Referee() {
     const [enPassantPiece, setEnPassantPiece] = React.useState<Piece | null>(null)
     const [capturedWhite, setCapturedWhite] = React.useState<Set<Piece>>(new Set())
     const [capturedBlack, setCapturedBlack] = React.useState<Set<Piece>>(new Set())
+
+    function isInCustomRange(pos: number, start: number, end: number){
+        return (start > pos && end < pos) || (end > pos && start < pos) 
+    }
+
+    function horizontalHelper(start: number, end: number, y: number){
+        return !pieces.some(piece => piece.position.y == y && isInCustomRange(piece.position.x, start, end))
+    }
+
+    function isPathClear(pos1: Position, pos2:Position): boolean{
+        const horizontal = pos1.y - pos2.y === 0 ? true: false // same row i.e. y-coordinates are the same
+        let vertical = pos1.x - pos2.x === 0 ? true: false // same column i.i. x-coordinates are the same
+        let diagonal = pos1.x - pos2.x === pos1.y - pos2.y ? true: false // same diagonal difference between x and y coordinates are the same
+        let result = false
+        if (horizontal){
+            result = horizontalHelper(pos1.x, pos2.x, pos1.y)
+        }
+
+        if (vertical){
+
+        }
+
+        if (diagonal){
+
+        }
+        return result
+        
+    }
+
+    function isRookEligible(pos: Position): Piece | boolean {
+        const found = pieces.find(p => p.type === PieceType.Rook && p.isMoved === false && p.position.x === pos.x && p.position.y === pos.y)
+        return found? found : false
+    }
+
+    function isEligibleForCastling(kingPos:Position, rookPos:Position): boolean{
+        if (isRookEligible(rookPos)){
+            return isPathClear(kingPos, rookPos)
+        }
+        return false
+    }
+
+    // function isEligibleForCastling(): boolean{
+    //     return false
+    // }
 
     function isOccupied(pos: Position) {
         return pieces.some(p => p.position.x === pos.x && p.position.y === pos.y)
@@ -54,12 +100,7 @@ function Referee() {
             const end_row = activePiece?.color === Color.White ? 7 : 0
             let active: Piece = activePiece!.clone()
             const isEligibleForPromotion: boolean = activePiece!.type === PieceType.Pawn && curPiece.position.y === end_row 
-            
-            //pawn promotion
-                            // if (curPiece.type === PieceType.Pawn && curPiece.position.y === end_row) {
-                            //     //pawn promotion    
-                            // }
-
+            const isCastleMove = castleMove && castleMove.some(move => move.x === curPiece.position.x && move.y === curPiece.position.y)
             console.log("Valid clicked at ", curPiece.position.x, curPiece.position.y)
 
             // move the piece to valid position
@@ -82,7 +123,7 @@ function Referee() {
                             //push piece back with updated coordinates for the moved piece
                             if (activePiece!.id === prev[i].id) {
                                 active.setPosition = curPiece.position
-
+                                active.isMoved = true
                                 if(isEligibleForPromotion){
                                     setPromotionPawn(active)
                                     promotionModalRef.current?.classList.remove("hidden");
@@ -91,7 +132,16 @@ function Referee() {
                                 res.push(active)
                             }
                             else {
-                                res.push(prev[i])
+
+                                if(isCastleMove){
+                                    const castleSide = curPiece.position.x == 2? 0 : 7 //2 on left and 6 on right 
+                                    const newRookPos = new Position(curPiece.position.x == 2? 3 : 5, curPiece.position.y)
+                                    if (curPiece.position.y === prev[i].position.y && prev[i].position.x === castleSide){
+                                        prev[i].position = newRookPos
+                                    }
+                                    
+                                }
+                                    res.push(prev[i])
                             }
                         }
                     }
@@ -112,12 +162,16 @@ function Referee() {
             // clear valid pos
             setValidPos([])
 
+            setCastleMove([])
+
             // clear active piece
             setActivePiece(null)
         }
         else if (curPiece.type !== PieceType.Empty) {
             // clear current valid pos
             setValidPos([])
+
+            setCastleMove([])
 
             // set active piece
             setActivePiece(curPiece)
@@ -129,6 +183,8 @@ function Referee() {
             // handle clicking of non valid spots
             // clear current valid pos
             setValidPos([])
+
+            setCastleMove([])
         }
     }
 
@@ -160,7 +216,26 @@ function Referee() {
                     }
                 }
             })
-            if (piece.type === PieceType.Knight || piece.type === PieceType.King) {
+            if (piece.type === PieceType.Knight) {
+                break;
+            }
+            if (piece.type === PieceType.King){
+                if(!piece.isMoved){
+                    // QueenSide
+                    let castleMoves: Position[] = []
+                    if (isEligibleForCastling(piece.position, new Position(0, piece.position.y))){
+                        const castlePos = new Position(piece.position.x - 2, piece.position.y)
+                        possibleMoves.push(castlePos)
+                        castleMoves.push(castlePos)
+                    }
+                    // KingSide
+                    if (isEligibleForCastling(piece.position, new Position(7, piece.position.y))){
+                        const castlePos = new Position(piece.position.x + 2, piece.position.y)
+                        possibleMoves.push(castlePos)
+                        castleMoves.push(castlePos)
+                    }
+                    setCastleMove(castleMoves)
+                }
                 break;
             }
             proceed = dir.reduce((a, b) => (a || b))
