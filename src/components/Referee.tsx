@@ -1,19 +1,20 @@
-import { Piece, Position } from "../models/"
-import { PieceType, Color, initialBoard } from "../Constants"
 import React from "react"
+import { Color, initialBoard, PieceType } from "../Constants"
+import { Piece, Position } from "../models"
+import Chessboard from "./Chessboard"
+import Footer from "./Footer"
+import Header from "./Header"
+import PromotionModal from "./PromotionModal"
 
-export const useBoard = () => {
-
-    const [pieces, setPieces] = React.useState<Piece[]>([]) //can be changed to object later for faster access
+function Referee() {
+    const promotionModalRef = React.useRef<HTMLDivElement>(null)
+    const [promotionPawn, setPromotionPawn] = React.useState<Piece | null>(null)
+    const [pieces, setPieces] = React.useState<Piece[]>(initialBoard) //can be changed to object later for faster access
     const [validPos, setValidPos] = React.useState<Position[]>([])
     const [activePiece, setActivePiece] = React.useState<Piece | null>(null)
     const [enPassantPiece, setEnPassantPiece] = React.useState<Piece | null>(null)
     const [capturedWhite, setCapturedWhite] = React.useState<Set<Piece>>(new Set())
     const [capturedBlack, setCapturedBlack] = React.useState<Set<Piece>>(new Set())
-
-    React.useEffect(() => {
-        setPieces(initialBoard)
-    }, [])
 
     function isOccupied(pos: Position) {
         return pieces.some(p => p.position.x === pos.x && p.position.y === pos.y)
@@ -50,8 +51,14 @@ export const useBoard = () => {
 
     function handleClick(event: React.MouseEvent, curPiece: Piece, valid: boolean = false) {
         if (valid) {
-            const end_row = curPiece.color === Color.White ? 7 : 0
+            const end_row = activePiece?.color === Color.White ? 7 : 0
             let active: Piece = activePiece!.clone()
+            const isEligibleForPromotion: boolean = activePiece!.type === PieceType.Pawn && curPiece.position.y === end_row 
+            
+            //pawn promotion
+                            // if (curPiece.type === PieceType.Pawn && curPiece.position.y === end_row) {
+                            //     //pawn promotion    
+                            // }
 
             console.log("Valid clicked at ", curPiece.position.x, curPiece.position.y)
 
@@ -71,10 +78,16 @@ export const useBoard = () => {
                             capturePiece(prev[i])
 
                         } else {
-                            
+
                             //push piece back with updated coordinates for the moved piece
                             if (activePiece!.id === prev[i].id) {
                                 active.setPosition = curPiece.position
+
+                                if(isEligibleForPromotion){
+                                    setPromotionPawn(active)
+                                    promotionModalRef.current?.classList.remove("hidden");
+                                }
+
                                 res.push(active)
                             }
                             else {
@@ -218,5 +231,36 @@ export const useBoard = () => {
         return temp
     }
 
-    return ({ pieces, validPos, handleClick }) /* list of methods to be passed to chessboard tsx*/
+    function promotePawn(type: PieceType){
+        promotionModalRef.current?.classList.add("hidden")
+        setPieces(prevPieces => (prevPieces.map(piece => {
+            if(piece.id === promotionPawn!.id){
+                piece.type = type
+                piece.image = `${type}_${piece.color}.png`
+            } 
+            return piece
+        })))
+        setPromotionPawn(null)
+    }
+
+    const boardProps = {
+        pieces, validPos, handleClick
+    }
+
+    const promotionModalProps = {
+        promotePawn
+    }
+
+    return (
+        <div className="bg-slate-200 max-w-full min-h-screen">
+            <Header />
+            <div className="hidden" ref={promotionModalRef}>
+                <PromotionModal {...promotionModalProps} />
+            </div>
+            <Chessboard {...boardProps} />
+            <Footer />
+        </div>
+    )
 }
+
+export default Referee

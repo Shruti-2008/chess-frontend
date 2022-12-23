@@ -29,9 +29,10 @@ function Tile({piece, backgroundColor, highlight, handleClick} : Props) {
                 backgroundPosition: "center",
                 backgroundSize: "cover"
             }}
-            className="aspect-square flex justify-center items-center object-contain hover:cursor-grab active:cursor-grabbing"
+            className="aspect-square flex justify-center items-center object-contain hover:cursor-pointer active:cursor-grabbing"
             onClick={(event) => {handleClick(event, piece, highlight)}}
         >
+            <p className="text-cyan-400 text-lg font-semibold">{piece.position.x}, {piece.position.y}</p>
         </div>
     )
 }

@@ -5,15 +5,15 @@ import Tile from "./Tile"
 import UserCard from "./UserCard"
 import { useBoard } from "../hooks/useBoard"
 
-// interface Props {
-//     pieces: Piece[]
-//     validPos: Position[]
-//     handleClick: (event: React.MouseEvent, piece: Piece, highlight: boolean) => void
-// }
+interface Props {
+    pieces: Piece[]
+    validPos: Position[]
+    handleClick: (event: React.MouseEvent, piece: Piece, highlight: boolean) => void
+}
 
-function Chessboard(){//({ pieces, validPos, handleClick }: Props) {
+function Chessboard({pieces, validPos, handleClick}: Props){//({ pieces, validPos, handleClick }: Props) {
 
-    const { pieces, validPos, handleClick } = useBoard()
+    //const { pieces, validPos, handleClick } = useBoard()
     //const vertical_axis = [1, 2, 3, 4, 5, 6, 7, 8]
     //const horizontal_axis = ["a", "b", "c", "d", "e", "f", "g", "h"]
 
