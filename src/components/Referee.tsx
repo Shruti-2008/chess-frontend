@@ -82,15 +82,25 @@ function Referee() {
             enPassantPos.push(new Position(destPos.x, destPos.y))
         }
 
-        board[moveStart!.x][moveStart!.y] = new Piece(PieceType.Empty, Color.None)
-
+        //castle move
+        if(src.type === PieceType.King && Math.abs(moveStart!.y - destPos.y)===2){
+            const castleSide = destPos.y === 2 ? 0 : 7 //2 on left and 6 on right 
+            const newRookPos = new Position(destPos.x, destPos.y === 2 ? 3 : 5)
+            board[newRookPos.x][newRookPos.y] = board[newRookPos.x][castleSide].clone()
+            board[newRookPos.x][castleSide] = new Piece(PieceType.Empty, Color.None)
+            board[newRookPos.x][castleSide].isMoved = true
+        }
+        
         //pawn promotion
         if(destPos.x === endRow){
             console.log("Promote Pawn")
             promotionModalRef.current?.classList.remove("hidden")
             setPromotionPawnPosition(destPos)
         }
+        
+        board[moveStart!.x][moveStart!.y] = new Piece(PieceType.Empty, Color.None)
         board[destPos.x][destPos.y] = src
+        board[destPos.x][destPos.y].isMoved = true
         
         return enPassantPos
     }
@@ -254,28 +264,41 @@ function Referee() {
                 break;
             }
             if (srcPiece.type === PieceType.King) {
-                // if (!srcPiece.isMoved) {
-                //     // QueenSide
-                //     let castleMoves: Position[] = []
-                //     if (isEligibleForCastling(srcPosition, new Position(0, srcPosition.y))) {
-                //         const castlePos = new Position(srcPosition.x - 2, srcPosition.y)
-                //         possibleMoves.push(new Move(srcPosition, castlePos))
-                //         castleMoves.push(castlePos) /****************need to look into this */
-                //     }
-                //     // KingSide
-                //     if (isEligibleForCastling(srcPosition, new Position(7, srcPosition.y))) {
-                //         const castlePos = new Position(srcPosition.x + 2, srcPosition.y)
-                //         possibleMoves.push(new Move(srcPosition, castlePos))
-                //         castleMoves.push(castlePos)
-                //     }
-                //     setCastleMove(castleMoves)
-                // }
+                if (!srcPiece.isMoved) {
+                    //Queenside
+                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 0) , moves)
+                    //Kingside
+                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 7) , moves)
+                    
+                }
                 break;
             }
             proceed = isDirectionValid.reduce((a, b) => (a || b))
             directions = directions.map(x => x.map(t => t && t + Math.sign(t)))
         }
         moves.push(...possibleMoves)
+    }
+
+    function getCastleMoves(kingPiece: Piece, kingPosition: Position, rookPosition:Position, moves: Move[]){
+        const direction = rookPosition.y < kingPosition.y ? -1 : 1
+        const qsRook = board[rookPosition.x][rookPosition.y]
+        if (qsRook.type === PieceType.Rook && !qsRook.isMoved){
+            //move rook also isMoved
+            if (isCastlePathClear(kingPosition, rookPosition)){
+                moves.push(new Move(kingPosition, new Position(kingPosition.x, kingPosition.y+2*direction)))
+            }
+        }
+    }
+
+    function isCastlePathClear(kingPos: Position, rookPos: Position){
+        const direction = rookPos.y < kingPos.y ? 1: -1 
+        for(let col = rookPos.y + direction; (col - kingPos.y) != 0; col += direction){
+            const piece = board[kingPos.x][col]
+            if(piece.type !== PieceType.Empty){
+                return false
+            }
+        }
+        return true
     }
 
     function getPawnMoves(piece: Piece, srcPosition: Position, moves: Move[], enPassantPos: Position[]) {
