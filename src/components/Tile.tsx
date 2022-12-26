@@ -1,15 +1,16 @@
 import React from "react";
 import { IMAGE_LOC, Color } from "../Constants";
-import { Piece } from "../models";
+import { Piece, Position } from "../models";
 
 interface Props {
     piece: Piece
     backgroundColor: Color
     highlight: boolean;
-    handleClick:(event: React.MouseEvent, piece: Piece, highlight: boolean) => void
+    position: Position
+    handleClick: (event: React.MouseEvent, piece: Position, highlight: boolean) => void
   }
 
-function Tile({piece, backgroundColor, highlight, handleClick} : Props) {
+function Tile({piece, backgroundColor, highlight, position, handleClick} : Props) {
 
     const highlightImage = "valid_pos.png"
     const tileBackgroundImage = `spot_${backgroundColor}.png`//props.color ? "spot_b.png" : "spot_w.png" 
@@ -30,9 +31,9 @@ function Tile({piece, backgroundColor, highlight, handleClick} : Props) {
                 backgroundSize: "cover"
             }}
             className="aspect-square flex justify-center items-center object-contain hover:cursor-pointer active:cursor-grabbing"
-            onClick={(event) => {handleClick(event, piece, highlight)}}
+            onClick={(event) => {handleClick(event, position, highlight)}}
         >
-            <p className="text-cyan-400 text-lg font-semibold">{piece.position.x}, {piece.position.y}</p>
+            <p className="text-cyan-400 text-lg font-semibold">{position.x}, {position.y}</p>
         </div>
     )
 }

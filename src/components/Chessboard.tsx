@@ -4,14 +4,15 @@ import { Piece, Position } from "../models"
 import Tile from "./Tile"
 import UserCard from "./UserCard"
 import { useBoard } from "../hooks/useBoard"
+import { Move } from "../models/Move"
 
 interface Props {
-    pieces: Piece[]
-    validPos: Position[]
-    handleClick: (event: React.MouseEvent, piece: Piece, highlight: boolean) => void
+    board: Piece[][]
+    validMoves: Move[]
+    handleClick: (event: React.MouseEvent, piece: Position, highlight: boolean) => void
 }
 
-function Chessboard({pieces, validPos, handleClick}: Props){//({ pieces, validPos, handleClick }: Props) {
+function Chessboard({ board, validMoves, handleClick }: Props) {//({ pieces, validPos, handleClick }: Props) {
 
     //const { pieces, validPos, handleClick } = useBoard()
     //const vertical_axis = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -19,31 +20,51 @@ function Chessboard({pieces, validPos, handleClick}: Props){//({ pieces, validPo
 
     let tiles: JSX.Element[] = []//: Array<typeof Tile> = []
 
-    for (let i = BOARD_SIZE; i > 0; i -= 1) {
-        for (let j = 0; j < BOARD_SIZE; j += 1) {
+    // for (let i = BOARD_SIZE; i > 0; i -= 1) {
+    //     for (let j = 0; j < BOARD_SIZE; j += 1) {
 
-            let highlight: boolean = false
-            let backgroundColor: Color = Color.None
-            
-            let piece = pieces.find(p => p.position.x === j && p.position.y === i - 1)
-            if (!piece) {
-                piece = new Piece(new Position(j, i - 1), PieceType.Empty, Color.None)
-            }
+    //         let highlight: boolean = false
+    //         let backgroundColor: Color = Color.None
 
-            let pos = validPos.find(pos => pos.x === j && pos.y === i - 1)
-            if (pos) {
-                highlight = true
-            }
+    //         let piece = pieces.find(p => p.position.x === j && p.position.y === i - 1)
+    //         if (!piece) {
+    //             piece = new Piece(new Position(j, i - 1), PieceType.Empty, Color.None)
+    //         }
 
-            backgroundColor = (i + j) % 2 === 0 ? Color.White : Color.Black
+    //         let pos = validPos.find(pos => pos.x === j && pos.y === i - 1)
+    //         if (pos) {
+    //             highlight = true
+    //         }
 
+    //         backgroundColor = (i + j) % 2 === 0 ? Color.White : Color.Black
+
+    //         const tileProps = {
+    //             piece,
+    //             backgroundColor,
+    //             highlight,
+    //             handleClick
+    //         }
+    //         tiles.push(<Tile key={`${i}${j}`} {...tileProps} />)
+    //     }
+    // }
+
+    for (let row = BOARD_SIZE - 1; row >= 0; row -= 1) {
+        for (let col = 0; col < BOARD_SIZE; col += 1) {
+                const piece = board[row][col]
+                const backgroundColor = (row + col) % 2 === 0 ? Color.Black : Color.White
+                const highlight = validMoves.some(move => move.endPos.samePosition(new Position(row, col)));
+                const position = new Position(row, col)
+                if(highlight){
+                    console.log("highlight ",row,col)
+                }
             const tileProps = {
                 piece,
                 backgroundColor,
                 highlight,
+                position,
                 handleClick
             }
-            tiles.push(<Tile key={`${i}${j}`} {...tileProps} />)
+            tiles.push(<Tile key={`${row}${col}`} {...tileProps} />)
         }
     }
 
