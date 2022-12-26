@@ -58,9 +58,11 @@ function Referee() {
 
     function makeMove(destPos: Position): Position[] {
 
-        let enPassantPos: Position[] = []
         const src = board[moveStart!.x][moveStart!.y]
         const dest = board[destPos.x][destPos.y]
+
+        let enPassantPos: Position[] = []
+        let endRow = src.color === Color.White? 7 : 0
 
         const curMove = new Move(moveStart!, destPos)
         const move = moves.find(move => move.isEqual(curMove))
@@ -81,7 +83,15 @@ function Referee() {
         }
 
         board[moveStart!.x][moveStart!.y] = new Piece(PieceType.Empty, Color.None)
+
+        //pawn promotion
+        if(destPos.x === endRow){
+            console.log("Promote Pawn")
+            promotionModalRef.current?.classList.remove("hidden")
+            setPromotionPawnPosition(destPos)
+        }
         board[destPos.x][destPos.y] = src
+        
         return enPassantPos
     }
 
@@ -219,7 +229,7 @@ function Referee() {
                     const destPosition = new Position(srcPosition.x + move_direction[0], srcPosition.y + move_direction[1])
                     if (destPosition.isInRange()) {
                         const destPiece = board[destPosition.x][destPosition.y] // ************ need to get board *************//
-                        if (destPiece.type == PieceType.Empty) {
+                        if (destPiece.type === PieceType.Empty) {
                             possibleMoves.push(new Move(srcPosition, destPosition))
                         }
                         else if (destPiece.color === opponentColor(srcPiece.color)) {
@@ -301,18 +311,19 @@ function Referee() {
 
     function promotePawn(type: PieceType) {
         promotionModalRef.current?.classList.add("hidden")
+        console.log(type)
         setBoard(prevBoard => {
             let newBoard: Piece[][] = []
-            for (let col = 0; col < BOARD_SIZE; col += 1) {
-                newBoard[col] = []
-                for (let row = 0; row < BOARD_SIZE; row += 1) {
+            for (let row = 0; row < BOARD_SIZE; row += 1) {
+                newBoard[row] = []
+                for (let col = 0; col < BOARD_SIZE; col += 1) {
                     if (promotionPawnPosition?.samePosition(new Position(row, col))) {
                         let piece = prevBoard[row][col].clone()
                         piece.type = type
                         piece.image = `${type}_${piece.color}.png`
-                        newBoard[row][col] = piece
+                        newBoard[row].push(piece)
                     } else {
-                        newBoard[row][col] = prevBoard[row][col]
+                        newBoard[row].push(prevBoard[row][col])
                     }
                 }
             }
