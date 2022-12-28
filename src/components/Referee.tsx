@@ -369,7 +369,8 @@ function Referee() {
     }
 
     const promotionModalProps = {
-        promotePawn
+        promotePawn,
+        color: opponentColor(player) 
     }
 
     ////max-w-full
