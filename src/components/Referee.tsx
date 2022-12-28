@@ -1,6 +1,6 @@
 import React from "react"
 import { EmitHelper } from "typescript"
-import { BOARD_SIZE, Color, initialBoard, PieceType } from "../Constants"
+import { BOARD_SIZE, Color, initialBoard, PieceType, capturedCount } from "../Constants"
 import { Piece, Position } from "../models"
 import { Move } from "../models/Move"
 import Chessboard from "./Chessboard"
@@ -17,9 +17,11 @@ function Referee() {
     const promotionModalRef = React.useRef<HTMLDivElement>(null)
     const [validPos, setValidPos] = React.useState<Position[]>([])
     const [enPassantPiece, setEnPassantPiece] = React.useState<Piece | null>(null) //comes from opponent
-    const [capturedWhite, setCapturedWhite] = React.useState<Set<Piece>>(new Set())
-    const [capturedBlack, setCapturedBlack] = React.useState<Set<Piece>>(new Set())
+    //const [capturedWhite, setCapturedWhite] = React.useState<Set<Piece>>(new Set())
+    //const [capturedBlack, setCapturedBlack] = React.useState<Set<Piece>>(new Set())
 
+    const [capturedWhite, setCapturedWhite] = React.useState(capturedCount)
+    const [capturedBlack, setCapturedBlack] = React.useState(capturedCount)
     //const [enPassantPosition, setEnPassantPosition] = React.useState<Position | null>(null)
     const [board, setBoard] = React.useState<Piece[][]>(initialBoard)
     const [pins, setPins] = React.useState<Piece[]>([])
@@ -62,7 +64,7 @@ function Referee() {
         const dest = board[destPos.x][destPos.y]
 
         let enPassantPos: Position[] = []
-        let endRow = src.color === Color.White? 7 : 0
+        let endRow = src.color === Color.White ? 7 : 0
 
         const curMove = new Move(moveStart!, destPos)
         const move = moves.find(move => move.isEqual(curMove))
@@ -73,7 +75,7 @@ function Referee() {
 
         //enpassant
         if (move && move!.isEnPassantMove) { //maybe improve????????????
-            console.log("Enpassant capturing piece : ",moveStart!.x, destPos.y)
+            console.log("Enpassant capturing piece : ", moveStart!.x, destPos.y)
             const enPassantPosition = new Position(moveStart!.x, destPos.y)
             capture(board[enPassantPosition!.x][enPassantPosition!.y])
             board[enPassantPosition!.x][enPassantPosition!.y] = new Piece(PieceType.Empty, Color.None)
@@ -83,32 +85,38 @@ function Referee() {
         }
 
         //castle move
-        if(src.type === PieceType.King && Math.abs(moveStart!.y - destPos.y)===2){
+        if (src.type === PieceType.King && Math.abs(moveStart!.y - destPos.y) === 2) {
             const castleSide = destPos.y === 2 ? 0 : 7 //2 on left and 6 on right 
             const newRookPos = new Position(destPos.x, destPos.y === 2 ? 3 : 5)
             board[newRookPos.x][newRookPos.y] = board[newRookPos.x][castleSide].clone()
             board[newRookPos.x][castleSide] = new Piece(PieceType.Empty, Color.None)
             board[newRookPos.x][castleSide].isMoved = true
         }
-        
+
         //pawn promotion
-        if(destPos.x === endRow){
+        if (destPos.x === endRow) {
             console.log("Promote Pawn")
             promotionModalRef.current?.classList.remove("hidden")
             setPromotionPawnPosition(destPos)
         }
-        
+
         board[moveStart!.x][moveStart!.y] = new Piece(PieceType.Empty, Color.None)
         board[destPos.x][destPos.y] = src
         board[destPos.x][destPos.y].isMoved = true
-        
+
         return enPassantPos
     }
 
     function capture(piece: Piece) {
         piece.color === Color.White ?
-            setCapturedWhite(prevCaptured => (prevCaptured.add(piece))) :
-            setCapturedBlack(prevCaptured => (prevCaptured.add(piece)))
+            // setCapturedWhite(prevCaptured => (prevCaptured.add(piece))) :
+            // setCapturedBlack(prevCaptured => (prevCaptured.add(piece)))
+            setCapturedWhite(
+                prev => prev.map(obj => obj.type === piece.type ? { ...obj, value: obj.value + 1 } : obj)
+            ) :
+            setCapturedBlack(
+                prev => prev.map(obj => obj.type === piece.type ? { ...obj, value: obj.value + 1 } : obj)
+            )
     }
 
     function changePlayer() {
@@ -266,10 +274,10 @@ function Referee() {
             if (srcPiece.type === PieceType.King) {
                 if (!srcPiece.isMoved) {
                     //Queenside
-                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 0) , moves)
+                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 0), moves)
                     //Kingside
-                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 7) , moves)
-                    
+                    getCastleMoves(srcPiece, srcPosition, new Position(srcPosition.x, 7), moves)
+
                 }
                 break;
             }
@@ -279,22 +287,22 @@ function Referee() {
         moves.push(...possibleMoves)
     }
 
-    function getCastleMoves(kingPiece: Piece, kingPosition: Position, rookPosition:Position, moves: Move[]){
+    function getCastleMoves(kingPiece: Piece, kingPosition: Position, rookPosition: Position, moves: Move[]) {
         const direction = rookPosition.y < kingPosition.y ? -1 : 1
         const qsRook = board[rookPosition.x][rookPosition.y]
-        if (qsRook.type === PieceType.Rook && !qsRook.isMoved){
+        if (qsRook.type === PieceType.Rook && !qsRook.isMoved) {
             //move rook also isMoved
-            if (isCastlePathClear(kingPosition, rookPosition)){
-                moves.push(new Move(kingPosition, new Position(kingPosition.x, kingPosition.y+2*direction)))
+            if (isCastlePathClear(kingPosition, rookPosition)) {
+                moves.push(new Move(kingPosition, new Position(kingPosition.x, kingPosition.y + 2 * direction)))
             }
         }
     }
 
-    function isCastlePathClear(kingPos: Position, rookPos: Position){
-        const direction = rookPos.y < kingPos.y ? 1: -1 
-        for(let col = rookPos.y + direction; (col - kingPos.y) != 0; col += direction){
+    function isCastlePathClear(kingPos: Position, rookPos: Position) {
+        const direction = rookPos.y < kingPos.y ? 1 : -1
+        for (let col = rookPos.y + direction; (col - kingPos.y) != 0; col += direction) {
             const piece = board[kingPos.x][col]
-            if(piece.type !== PieceType.Empty){
+            if (piece.type !== PieceType.Empty) {
                 return false
             }
         }
@@ -356,15 +364,17 @@ function Referee() {
     }
 
     const boardProps = {
-        board, validMoves, handleClick
+        board, validMoves, handleClick, capturedBlack, capturedWhite
     }
 
     const promotionModalProps = {
         promotePawn
     }
 
+    ////max-w-full
+
     return (
-        <div className="bg-slate-200 max-w-full min-h-screen">
+        <div className="bg-slate-200 flex flex-col">
             <Header />
             <div className="hidden" ref={promotionModalRef}>
                 <PromotionModal {...promotionModalProps} />

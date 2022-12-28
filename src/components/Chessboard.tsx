@@ -10,9 +10,11 @@ interface Props {
     board: Piece[][]
     validMoves: Move[]
     handleClick: (event: React.MouseEvent, piece: Position, highlight: boolean) => void
+    capturedBlack: {type: PieceType, value:number}[]
+    capturedWhite: {type: PieceType, value:number}[]
 }
 
-function Chessboard({ board, validMoves, handleClick }: Props) {//({ pieces, validPos, handleClick }: Props) {
+function Chessboard({ board, validMoves, handleClick, capturedBlack, capturedWhite }: Props) {//({ pieces, validPos, handleClick }: Props) {
 
     //const { pieces, validPos, handleClick } = useBoard()
     //const vertical_axis = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -69,14 +71,15 @@ function Chessboard({ board, validMoves, handleClick }: Props) {//({ pieces, val
     }
 
     return (
-        <div className="flex flex-col m-8 ">
-            <UserCard alignright={false} />
-            <div className="grid grid-cols-8 border-8 border-slate-500 m-auto w-full">
-                {tiles}
+        <div className="grow p-4">
+            <div className="flex flex-col box-border w-full h-full">
+                <UserCard alignright={false} captured={capturedWhite} color={Color.White}/>
+                <div className=" grow grid grid-cols-8 border-8 border-slate-500 m-auto aspect-square box-border w-full max-w-screen-md">
+                    {tiles}
+                </div>
+                <UserCard alignright={true} captured={capturedBlack} color={Color.Black}/>
             </div>
-            <UserCard alignright={true} />
         </div>
-
     )
 }
 export default Chessboard

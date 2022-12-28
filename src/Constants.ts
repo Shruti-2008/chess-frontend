@@ -94,3 +94,12 @@ function setInitialBoard(){
 }
 
 export const initialBoard = setInitialBoard()
+
+export const capturedCount = [
+    {type: PieceType.Pawn, value: 0},
+    {type: PieceType.Rook, value: 0},
+    {type: PieceType.Knight, value: 0},
+    {type: PieceType.Bishop, value: 0},
+    {type: PieceType.Queen, value: 0},
+    {type: PieceType.King, value: 0}
+]
