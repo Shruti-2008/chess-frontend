@@ -20,7 +20,7 @@ function UserCard(props: Props) {
 
             const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
             const element =
-                <div className="border-2 border-red-500 h-12">
+                <div className="h-12">
                     <img src={srcUrl} className="object-contain w-full h-full" />
                 </div>
             temp.push(element)
@@ -30,13 +30,13 @@ function UserCard(props: Props) {
                 const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
                 const leftShift = 1.5
                 const element =
-                    <div className={`relative -left-[${leftShift}rem] -mr-[${leftShift}rem] border-2 border-red-500 h-12`}>
+                    <div className={`relative -left-[${leftShift}rem] -mr-[${leftShift}rem] h-12`}>
                         <img src={srcUrl} className="object-contain w-full h-full" />
                     </div>
                 temp.push(element)
             }
 
-            const finalElement = <div className="border-4 border-green-400 flex">
+            const finalElement = <div className="flex">
                 {temp}
             </div>
             piecesCaptured.push(finalElement)
@@ -49,12 +49,12 @@ function UserCard(props: Props) {
             <div className="m-3">
                 <img src="../../assets/images/user_slate_400.png" alt="profile" className="object-contain max-h-12" />
             </div>
-            <div className="grid grid-rows-2 ml-2">
-                <div className="flex items-center border-4 border-fuchsia-500 align-middle">
+            <div className="grid grid-rows-2 ml-2 p-2">
+                <div className="flex items-center align-middle">
                     <h4 className="font-medium text-lg ">Shruti2008</h4>
                 </div>
 
-                <div className="flex flex-row border-4 border-fuchsia-500">
+                <div className="flex flex-row">
                     {piecesCaptured}
                 </div>
             </div>

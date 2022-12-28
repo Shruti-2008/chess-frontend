@@ -94,7 +94,7 @@ function Referee() {
         }
 
         //pawn promotion
-        if (destPos.x === endRow) {
+        if (src.type == PieceType.Pawn && destPos.x === endRow) {
             console.log("Promote Pawn")
             promotionModalRef.current?.classList.remove("hidden")
             setPromotionPawnPosition(destPos)
@@ -342,7 +342,7 @@ function Referee() {
 
     function promotePawn(type: PieceType) {
         promotionModalRef.current?.classList.add("hidden")
-        console.log(type)
+        console.log("Type selected = ",type)
         setBoard(prevBoard => {
             let newBoard: Piece[][] = []
             for (let row = 0; row < BOARD_SIZE; row += 1) {
@@ -352,6 +352,7 @@ function Referee() {
                         let piece = prevBoard[row][col].clone()
                         piece.type = type
                         piece.image = `${type}_${piece.color}.png`
+                        console.log("New piece = ", piece)
                         newBoard[row].push(piece)
                     } else {
                         newBoard[row].push(prevBoard[row][col])
