@@ -20,7 +20,7 @@ function UserCard(props: Props) {
 
             const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
             const element =
-                <div className="h-12">
+                <div key={`${i}_1`} className="h-12">
                     <img src={srcUrl} className="object-contain w-full h-full" />
                 </div>
             temp.push(element)
@@ -30,13 +30,13 @@ function UserCard(props: Props) {
                 const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
                 const leftShift = 1.5
                 const element =
-                    <div className={`relative -left-[${leftShift}rem] -mr-[${leftShift}rem] h-12`}>
+                    <div key={`${i}_${j}`} className={`relative -left-[${leftShift}rem] -mr-[${leftShift}rem] h-12`}>
                         <img src={srcUrl} className="object-contain w-full h-full" />
                     </div>
                 temp.push(element)
             }
 
-            const finalElement = <div className="flex">
+            const finalElement = <div className="flex" key={i}>
                 {temp}
             </div>
             piecesCaptured.push(finalElement)

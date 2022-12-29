@@ -56,9 +56,9 @@ function Chessboard({ board, validMoves, handleClick, capturedBlack, capturedWhi
                 const backgroundColor = (row + col) % 2 === 0 ? Color.Black : Color.White
                 const highlight = validMoves.some(move => move.endPos.samePosition(new Position(row, col)));
                 const position = new Position(row, col)
-                if(highlight){
-                    console.log("highlight ",row,col)
-                }
+                // if(highlight){
+                //     console.log("highlight ",row,col)
+                // }
             const tileProps = {
                 piece,
                 backgroundColor,
@@ -73,11 +73,11 @@ function Chessboard({ board, validMoves, handleClick, capturedBlack, capturedWhi
     return (
         <div className="grow p-4">
             <div className="flex flex-col box-border w-full h-full">
-                <UserCard alignright={false} captured={capturedWhite} color={Color.White}/>
+                <UserCard key="top" alignright={false} captured={capturedWhite} color={Color.White}/>
                 <div className=" grow grid grid-cols-8 border-8 border-slate-500 m-auto aspect-square box-border w-full max-w-screen-md">
                     {tiles}
                 </div>
-                <UserCard alignright={true} captured={capturedBlack} color={Color.Black}/>
+                <UserCard key="bottom" alignright={true} captured={capturedBlack} color={Color.Black}/>
             </div>
         </div>
     )
