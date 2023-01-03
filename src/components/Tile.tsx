@@ -21,6 +21,8 @@ function Tile({piece, backgroundColor, highlight, position, handleClick} : Props
     img.push(tileBackgroundImage)
     
     const bgImg: string = img.map(pic => `url(${IMAGE_LOC}${pic})`).join(", ")
+    const rowToRank = [1, 2, 3, 4, 5, 6, 7, 8]
+    const colToFile = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
     
     return(
         <div  style={
@@ -30,10 +32,10 @@ function Tile({piece, backgroundColor, highlight, position, handleClick} : Props
                 backgroundPosition: "center",
                 backgroundSize: "contain",
             }}
-            className="aspect-square flex justify-center items-center object-contain hover:cursor-pointer active:cursor-grabbing "
+            className="aspect-square flex justify-center items-center object-contain relative hover:cursor-pointer active:cursor-grabbing "
             onClick={(event) => {handleClick(event, position, highlight)}}
         >
-            <p className="text-cyan-400 text-lg font-semibold">{position.x}, {position.y}</p>
+            <p className="text-cyan-400 text-lg font-semibold absolute right-2 bottom-2">{colToFile[position.y]}{rowToRank[position.x]}</p>
         </div>
     )
 }

@@ -8,20 +8,10 @@ import Header from "./Header"
 import PromotionModal from "./PromotionModal"
 
 function Referee() {
-    //const [pieces, setPieces] = React.useState<Piece[]>([]) //can be changed to object later for faster access
-    //const [activePiece, setActivePiece] = React.useState<Piece | null>(null)
-    //const [promotionPawn, setPromotionPawn] = React.useState<Piece | null>(null)
-
-    //const [castleMove, setCastleMove] = React.useState<Position[]>([])
     const promotionModalRef = React.useRef<HTMLDivElement>(null)
-    //const [validPos, setValidPos] = React.useState<Position[]>([])
-    //const [enPassantPiece, setEnPassantPiece] = React.useState<Piece | null>(null) //comes from opponent
-    //const [capturedWhite, setCapturedWhite] = React.useState<Set<Piece>>(new Set())
-    //const [capturedBlack, setCapturedBlack] = React.useState<Set<Piece>>(new Set())
-
+    
     const [capturedWhite, setCapturedWhite] = React.useState(capturedCount)
     const [capturedBlack, setCapturedBlack] = React.useState(capturedCount)
-    //const [enPassantPosition, setEnPassantPosition] = React.useState<Position | null>(null)
     const [board, setBoard] = React.useState<Piece[][]>(initialBoard)
     const [pins, setPins] = React.useState<Piece[]>([])
     const [checkingPieces, setCheckingPieces] = React.useState<Piece[]>([])
@@ -519,7 +509,7 @@ function Referee() {
 
     return (
         <div className="bg-slate-200 flex flex-col">
-            <Header />
+            {/* <Header /> */}
             <div className="hidden" ref={promotionModalRef}>
                 <PromotionModal {...promotionModalProps} />
             </div>
