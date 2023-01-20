@@ -1,12 +1,43 @@
-import React from "react";
-import { Link } from "react-router-dom"
+import { useContext, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom"
+import AuthContext from "../context/AuthProvider";
+import { api } from "../services/authService"
 
 function Login() {
 
-    const [formData, setFormData] = React.useState({ "email": "", "password": "" })
+    const { setAuth } = useContext(AuthContext)
+    const navigate = useNavigate()
+    const [formData, setFormData] = useState({ "email": "", "password": "" })
+    const [errorText, setErrorText] = useState("")
+    const errRef = useRef<HTMLParagraphElement>(null)
+
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
+        try {
+            const bodyFormData = new FormData()
+            bodyFormData.append("username", formData.email)
+            bodyFormData.append("password", formData.password)
+            api.post("/login", bodyFormData, { headers: { "Content-Type": "multipart/form-data" } })
+                .then(response => {
+                    setAuth(response.data.access_token)
+                    navigate("/menu")
+                    setErrorText("")
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 403) {
+                        setErrorText(error.response.data.detail)
+                    } else if (error.request) {
+                        setErrorText("No response from server")
+                    } else {
+                        setErrorText("Unexpected error occured")
+                    }
+                    errRef.current?.focus()
+                })
+        } catch (error) {
+            setErrorText("Unexpected error occured")
+            errRef.current?.focus()
+        }
     }
 
     function handleChange(e: React.ChangeEvent) {
@@ -14,15 +45,17 @@ function Login() {
         const name = element.name
         const value = element.value
         setFormData(data => ({ ...data, [name]: value }))
+        setErrorText("")
     }
 
     return (
-        <div className="m-auto bg-slate-400 h-screen text-lg">
+        <div className="m-auto bg-slate-400 h-screen text-lg w-full">
             <form
                 onSubmit={e => handleSubmit(e)}
                 className="h-3/4 text-lg m-auto p-4 w-full rounded-xl bg-slate-200 mt-6 md:w-1/2 flex flex-col justify-around"
             >
-                <div className="flex flex-col justify-around mx-auto w-1/2">
+                <div className="flex flex-col justify-around mx-auto w-4/5 max-w-lg">
+                    <p ref={errRef} className="text-red-500 py-2 font-semibold">{errorText}</p>
                     <label
                         htmlFor="email"
                         className="font-semibold text-xl py-2 ">

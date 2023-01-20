@@ -508,7 +508,7 @@ function Referee() {
     ////max-w-full
 
     return (
-        <div className="bg-slate-200 flex flex-col">
+        <div className="bg-slate-200 flex flex-col w-full">
             {/* <Header /> */}
             <div className="hidden" ref={promotionModalRef}>
                 <PromotionModal {...promotionModalProps} />

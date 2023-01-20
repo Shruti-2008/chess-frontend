@@ -5,19 +5,31 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Register from './components/Register';
 import Home from './components/Home';
+import Menu from './components/Menu';
+import GameHistory from './components/GameHistory';
+import { AuthProvider } from './context/AuthProvider';
+import Protected from './components/Protected';
 function App() {
+
   return (
     <>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />}/>
-          <Route element={<Navbar />}>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route element={<Navbar />}>
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
+              <Route element={<Protected />}>
+                <Route path="menu" element={<Menu />} />
+                <Route path="history" element={<GameHistory />} />
+              </Route>
               <Route path="game" element={<Referee />} />
+                
             </Route>
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </AuthProvider>
     </>
   );
 }

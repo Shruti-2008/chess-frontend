@@ -3,7 +3,6 @@ import { BOARD_SIZE, Color, PieceType } from "../Constants"
 import { Piece, Position } from "../models"
 import Tile from "./Tile"
 import UserCard from "./UserCard"
-import { useBoard } from "../hooks/useBoard"
 import { Move } from "../models/Move"
 
 interface Props {
