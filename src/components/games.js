@@ -8,7 +8,7 @@ export const gameHistory = [
         result: "1-0",
     },
     {
-        id: 1,
+        id: 2,
         white: "Shruti",
         black: "Guru",
         noOfMoves: 5,
@@ -16,7 +16,7 @@ export const gameHistory = [
         result: "1-0",
     },
     {
-        id: 1,
+        id: 3,
         white: "Savi",
         black: "Shruti",
         noOfMoves: 5,

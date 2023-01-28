@@ -1,21 +1,18 @@
 import { createContext, useState } from "react"
 
-type Props = {
+type providerProps = {
     children?: React.ReactNode
 }
 
-interface contextProps{
+interface contextProps {
     auth: string
-    setAuth:(auth: string)=>void
+    setAuth: (auth: string) => void
 }
 
+const AuthContext = createContext<contextProps>({ auth: "", setAuth: () => { } })
 
-const AuthContext = createContext<contextProps>({auth:"",setAuth:()=>{}})
-
-export const AuthProvider = ({ children } : Props) => {
-
+export const AuthProvider = ({ children }: providerProps) => {
     const [auth, setAuth] = useState("")
-
     return (
         <AuthContext.Provider value={{ auth, setAuth }}>
             {children}
