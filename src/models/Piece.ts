@@ -8,7 +8,7 @@ export class Piece{
     type : PieceType
     color : Color
     id : string
-    isMoved: boolean
+    // isMoved: boolean
     
     constructor(type: PieceType, pieceColor: Color){ //position: Position, 
         this.image = `${type}_${pieceColor}.png`
@@ -16,7 +16,7 @@ export class Piece{
         this.type = type
         this.color = pieceColor
         this.id = nanoid()
-        this.isMoved = false
+        // this.isMoved = false
     }
 
     // set setPosition(pos: Position){

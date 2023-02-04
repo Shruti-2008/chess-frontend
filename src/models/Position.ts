@@ -17,7 +17,7 @@ export class Position{
         )    
     }
 
-    samePosition(pos : Position) : boolean{
+    isSamePosition(pos : Position) : boolean{
         return this.x === pos.x && this.y === pos.y 
     }
 }

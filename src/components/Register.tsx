@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import AuthContext from "../context/AuthProvider";
 import { api } from "../services/authService";
@@ -51,6 +51,10 @@ function Register() {
         })
         setErrorText("")
     }
+
+    useEffect(()=>{
+        setAuth("")
+    }, [])
 
     return (
         <div className="m-auto p-6 h-full w-full text-lg bg-slate-400">

@@ -12,7 +12,7 @@ interface contextProps {
 const AuthContext = createContext<contextProps>({ auth: "", setAuth: () => { } })
 
 export const AuthProvider = ({ children }: providerProps) => {
-    const [auth, setAuth] = useState("")
+    const [auth, setAuth] = useState<string>("")
     return (
         <AuthContext.Provider value={{ auth, setAuth }}>
             {children}

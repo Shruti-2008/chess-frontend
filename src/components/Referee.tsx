@@ -1,57 +1,105 @@
 import React from "react"
+import { useRef, useState } from "react"
 import { BOARD_SIZE, Color, initialBoard, PieceType, capturedCount } from "../Constants"
 import { Piece, Position } from "../models"
 import { Move } from "../models/Move"
 import Chessboard from "./Chessboard"
-import Footer from "./Footer"
-import Header from "./Header"
 import PromotionModal from "./PromotionModal"
+import EndGame from "./EndGame"
+import Moves from "./Moves"
+import { api } from "../services/authService"
 
 function Referee() {
-    const promotionModalRef = React.useRef<HTMLDivElement>(null)
-    
-    const [capturedWhite, setCapturedWhite] = React.useState(capturedCount)
-    const [capturedBlack, setCapturedBlack] = React.useState(capturedCount)
-    const [board, setBoard] = React.useState<Piece[][]>(initialBoard)
-    const [pins, setPins] = React.useState<Piece[]>([])
-    const [checkingPieces, setCheckingPieces] = React.useState<Piece[]>([])
-    const [isChecked, setIsChecked] = React.useState<boolean>(false)
-    const [player, setPlayer] = React.useState<Color>(Color.Black)
-    const [moves, setMoves] = React.useState<Move[]>([])
-    const [validMoves, setValidMoves] = React.useState<Move[]>([])
-    const [moveStart, setMoveStart] = React.useState<Position | null>(null)
-    const [promotionPawnPosition, setPromotionPawnPosition] = React.useState<Position | null>(null)
-    const [checkmate, setCheckmate] = React.useState(false)
-    const [stalemate, setStalemate] = React.useState(false)
-    const [whiteKingPos, setWhiteKingPos] = React.useState<Position>(new Position(0, 4))
-    const [blackKingPos, setBlackKingPos] = React.useState<Position>(new Position(7, 4))
+
+    const [player, setPlayer] = useState<Color>(Color.Black)
+    const [board, setBoard] = useState<Piece[][]>(initialBoard)
+    const [capturedWhite, setCapturedWhite] = useState(capturedCount)
+    const [capturedBlack, setCapturedBlack] = useState(capturedCount)
+    const [whiteKingPos, setWhiteKingPos] = useState<Position>(new Position(0, 4))
+    const [blackKingPos, setBlackKingPos] = useState<Position>(new Position(7, 4))
+    const [promotionPawnPosition, setPromotionPawnPosition] = useState<Position | null>(null)
+    const [moves, setMoves] = useState<Move[]>([])
+    const [validMoves, setValidMoves] = useState<Move[]>([])
+    const [playedMoves, setPlayedMoves] = useState<string[][]>([])
+    const [lastMove, setLastMove] = useState<Move | null>(null)
+    const [moveStartPos, setMoveStartPos] = useState<Position | null>(null)
+    const [checkedKing, setCheckedKing] = useState<Color | null>(null)
+    const [checkmate, setCheckmate] = useState(false)
+    const [stalemate, setStalemate] = useState(false)
+    const [winner, setWinner] = useState<Color | null>(null)
+    const [isEligibleForCastle, setIsEligibleForCastle] = useState([{ color: Color.White, side: "Q", value: true }, { color: Color.White, side: "K", value: true }, { color: Color.Black, side: "Q", value: true }, { color: Color.Black, side: "K", value: true }])
+
+    // const [pins, setPins] = useState<Piece[]>([])
+    // const [checkingPieces, setCheckingPieces] = useState<Piece[]>([])
+
+    const promotionModalRef = useRef<HTMLDivElement>(null)
+    const endGameRef = useRef<HTMLDivElement>(null)
+
+    // #int# accept board and player from server and remove the useWffect
 
     React.useEffect(() => {
         findMoves(board, []) /************/
         changePlayer()
+
+        // try {
+        //     api.post("/startGame", {},)
+        //         .then(response => {
+        //             setBoard(response.data.board)
+        //             setPlayer(response.data.player)
+        //         })
+        //         .catch((error) => {
+        //             if (error.response && error.response.status === 403) {
+        //                 alert(error.response.data.detail)
+        //             } else if (error.request) {
+        //                 alert("No response from server")
+        //             } else {
+        //                 alert("Unexpected error occured")
+        //             }
+        //             //errRef.current?.focus()
+        //         })
+        // } catch (error) {
+        //     alert("Unexpected error occured")
+        //     //errRef.current?.focus()
+        // }
     }, [])
 
     console.log('Rendered')
 
+    // return color of opponent /************ better name */
     function opponentColor(color: Color) {
         return color === Color.White ? Color.Black : Color.White
     }
 
+    function opponentPlays(move: Move, enPassantPos: Position[], _board: Piece[][]) {
+        // #int# Piece[][] should not be used anywhere
+        changePlayer()
+        findMoves(_board, enPassantPos)
+        setMoveStartPos(null) // is this really required here?
+        setValidMoves([])
+    }
+
+    function postMoveSteps(_board: Piece[][], enPassantPos: Position[]) {
+        changePlayer()
+        findMoves(_board, enPassantPos)
+        setMoveStartPos(null)
+        setValidMoves([])
+    }
+
     function handleClick(event: React.MouseEvent, posClicked: Position, valid: boolean = false) {
-        console.log("clicked ", posClicked)
         if (valid) {
-            const { enPassantPos, _board } = makeMove(posClicked)
-            changePlayer()
-            findMoves(_board, enPassantPos)
-            setMoveStart(null)
-            setValidMoves([])
+            makeMove(posClicked)
+            // postMoveSteps(_board, enPassantPos)
         } else {
             showValidMoves(posClicked)
-            setMoveStart(posClicked)
+            if (board[posClicked.x][posClicked.y].type !== PieceType.Empty) { // Check if player based highlighting is desired
+                setMoveStartPos(posClicked)
+            } else {
+                setMoveStartPos(null)
+            }
         }
     }
 
-    function makeMove(destPos: Position) {
+    function makeMove(moveEndPos: Position) {
 
         //clone the board
         let _board: Piece[][] = []
@@ -62,67 +110,87 @@ function Referee() {
             }
         }
 
-        console.log("Making move from ", moveStart, destPos)
-        const src = _board[moveStart!.x][moveStart!.y]
-        const dest = _board[destPos.x][destPos.y]
+        const src = _board[moveStartPos!.x][moveStartPos!.y]
+        const dest = _board[moveEndPos.x][moveEndPos.y]
 
         let enPassantPos: Position[] = []
         let endRow = src.color === Color.White ? 7 : 0
 
-        const curMove = new Move(moveStart!, destPos)
+        const curMove = new Move({ startPos: moveStartPos!, endPos: moveEndPos })
         const move = moves.find(move => move.isEqual(curMove))
 
-        if (dest.type !== PieceType.Empty && dest.color === opponentColor(src.color)) {
-            capture(dest)
-        }
-        console.log("Captured dest ", destPos)
+        if (move) {
 
-        //enpassant
-        if (move && move!.isEnPassantMove) { //maybe improve????????????
-            console.log("Enpassant capturing piece : ", moveStart!.x, destPos.y)
-            const enPassantPosition = new Position(moveStart!.x, destPos.y)
-            capture(board[enPassantPosition!.x][enPassantPosition!.y])
-            _board[enPassantPosition!.x][enPassantPosition!.y] = new Piece(PieceType.Empty, Color.None)
-        }
-        if (src.type === PieceType.Pawn && Math.abs(moveStart!.x - destPos.x) === 2) {
-            enPassantPos.push(new Position(destPos.x, destPos.y))
+            if (dest.type !== PieceType.Empty && dest.color === opponentColor(src.color)) {
+                capture(dest)
+            }
+
+            // enpassant capture move
+            if (move.isEnPassantMove) { // maybe improve naming????????????
+                const capturePosition = new Position(moveStartPos!.x, moveEndPos.y)
+                capture(board[capturePosition.x][capturePosition.y])
+                _board[capturePosition.x][capturePosition.y] = new Piece(PieceType.Empty, Color.None)
+            }
+
+            // enpassant move
+            if (src.type === PieceType.Pawn && Math.abs(moveStartPos!.x - moveEndPos.x) === 2) {
+                enPassantPos.push(new Position(moveEndPos.x, moveEndPos.y))
+            }
+
+            // castle move
+            if (src.type === PieceType.King && Math.abs(moveStartPos!.y - moveEndPos.y) === 2) { // need to change this condition?
+                const castleSide = moveEndPos.y === 2 ? 0 : 7 // 2 on left and 6 on right 
+                const newRookPos = new Position(moveEndPos.x, moveEndPos.y === 2 ? 3 : 5)
+                _board[newRookPos.x][newRookPos.y] = _board[newRookPos.x][castleSide].clone()
+                _board[newRookPos.x][castleSide] = new Piece(PieceType.Empty, Color.None)
+                // _board[newRookPos.x][castleSide].isMoved = true //************significance of this? remove it */
+            }
+
+            // pawn promotion
+            if (src.type === PieceType.Pawn && moveEndPos.x === endRow) {
+                promotionModalRef.current!.classList.remove("hidden")
+                setPromotionPawnPosition(moveEndPos)
+            } else {
+                // add this move notation to playedMoves list
+                const notation = move.getNotation({ srcPiece: src, destPiece: dest })
+                addNotation(notation)
+                // setMoveStartPos(null)
+            }
+
+            // update King position
+            if (src.type === PieceType.King) {
+                src.color === Color.White ?
+                    setWhiteKingPos(moveEndPos) :
+                    setBlackKingPos(moveEndPos)
+
+                setIsEligibleForCastle(prev => prev.map(obj => (obj.color === src.color && obj.value) ? { ...obj, value: false } : { ...obj }))
+            }
+            else if (src.type === PieceType.Rook) {
+                const side = curMove.startPos.y === 0 ? "Q" : "K" // change condition maybe
+                setIsEligibleForCastle(prev => prev.map(obj => (obj.color === src.color && obj.value && obj.side === side) ? { ...obj, value: false } : { ...obj }))
+            }
+
+            _board[moveStartPos!.x][moveStartPos!.y] = new Piece(PieceType.Empty, Color.None)
+            _board[moveEndPos.x][moveEndPos.y] = src
+            // _board[moveEndPos.x][moveEndPos.y].isMoved = true
+
+            setBoard(_board)
+            setLastMove(curMove)
+
+        } else {
+            alert("No such move found")
         }
 
-        //castle move
-        if (src.type === PieceType.King && Math.abs(moveStart!.y - destPos.y) === 2) {
-            const castleSide = destPos.y === 2 ? 0 : 7 //2 on left and 6 on right 
-            const newRookPos = new Position(destPos.x, destPos.y === 2 ? 3 : 5)
-            _board[newRookPos.x][newRookPos.y] = _board[newRookPos.x][castleSide].clone()
-            _board[newRookPos.x][castleSide] = new Piece(PieceType.Empty, Color.None)
-            _board[newRookPos.x][castleSide].isMoved = true
+        if (!(src.type === PieceType.Pawn && moveEndPos.x === endRow)) {
+            postMoveSteps(_board, enPassantPos)
         }
+        // return { enPassantPos, _board }
 
-        //pawn promotion
-        if (src.type === PieceType.Pawn && destPos.x === endRow) {
-            console.log("Promote Pawn")
-            promotionModalRef.current?.classList.remove("hidden")
-            setPromotionPawnPosition(destPos)
-        }
-
-        //update King position
-        if (src.type === PieceType.King) {
-            src.color === Color.White ?
-                setWhiteKingPos(destPos) :
-                setBlackKingPos(destPos)
-        }
-
-        _board[moveStart!.x][moveStart!.y] = new Piece(PieceType.Empty, Color.None)
-        _board[destPos.x][destPos.y] = src
-        _board[destPos.x][destPos.y].isMoved = true
-
-        setBoard(_board)
-        return { enPassantPos, _board }
     }
 
+    // increment the count of piece captured
     function capture(piece: Piece) {
         piece.color === Color.White ?
-            // setCapturedWhite(prevCaptured => (prevCaptured.add(piece))) :
-            // setCapturedBlack(prevCaptured => (prevCaptured.add(piece)))
             setCapturedWhite(
                 prev => prev.map(obj => obj.type === piece.type ? { ...obj, value: obj.value + 1 } : obj)
             ) :
@@ -131,13 +199,15 @@ function Referee() {
             )
     }
 
+    // change player from white to black and vice-versa //*************name better? */
     function changePlayer() {
         setPlayer(prev => (prev === Color.White ? Color.Black : Color.White))
     }
 
+    // fiter moves based on starting position and save it in state validMoves
     function showValidMoves(posClicked: Position) {
         setValidMoves(
-            moves.filter(move => move.startPos.samePosition(posClicked))
+            moves.filter(move => move.startPos.isSamePosition(posClicked))
         )
     }
 
@@ -146,8 +216,9 @@ function Referee() {
         let _pins: { position: Position, direction: Position }[] = []
         let _checkingPieces: { position: Position, direction: Position }[] = []
 
+        console.log("King is ", king.color, position)
         let possiblePins: Position[]
-        let directions = [[-1, 0], [1, 0], [0, 1], [0, -1], [-1, -1], [1, -1], [-1, 1], [1, 1]]
+        let directions = [[-1, 0], [1, 0], [0, 1], [0, -1], [-1, -1], [-1, 1], [1, -1], [1, 1]] // swapped 5,6 previously [[-1, 0], [1, 0], [0, 1], [0, -1], [-1, -1], [1, -1], [-1, 1], [1, 1]]
         directions.forEach((direction, idx) => {
             possiblePins = []
             for (let i = 1; i < 8; i++) {
@@ -155,24 +226,36 @@ function Referee() {
                 if (newPos.isInRange()) {
                     const piece = _board[newPos.x][newPos.y]
                     if (piece.type !== PieceType.Empty) {
-                        if (piece.color === king.color && piece.type !== PieceType.King) { //ally
+                        if (piece.color === king.color && piece.type !== PieceType.King) { // ally // second check in cases when we are trying out if moving king will put it into check
                             if (possiblePins.length === 0) {
                                 possiblePins.push(newPos)
                             } else {
                                 break
                             }
-                        } else if (piece.color === opponentColor(king.color)) { //enemy
+                        } else if (piece.color === opponentColor(king.color)) { // enemy
                             // 1. rook, 2. bishop, 3. pawn, 4. queen 5. king
+                            if (piece.type === PieceType.Pawn) {
+                                console.log(newPos)
+                                console.log(piece.type, i, piece.color, idx)
+                            }
                             if (
                                 (piece.type === PieceType.Rook && 0 <= idx && idx < 4) ||
-                                (piece.type === PieceType.Bishop && idx >= 4 && idx <= 8) ||
+                                (piece.type === PieceType.Bishop && idx >= 4 && idx < 8) ||
                                 (piece.type === PieceType.Pawn && i === 1 &&
                                     ((piece.color === Color.White && 4 <= idx && idx <= 5) ||
                                         (piece.color === Color.Black && 6 <= idx && idx <= 7))) ||
                                 (piece.type === PieceType.Queen) ||
-                                (piece.type === PieceType.King && i === 1)
+                                (piece.type === PieceType.King && i === 1) // should never happen ideally
                             ) {
+                                if (piece.type === PieceType.Pawn) {
+                                    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                                }
+
                                 if (possiblePins.length === 0) {
+                                    if (piece.type === PieceType.Pawn) {
+                                        console.log("BBBBBBBBBBBBBBBBBBB")
+                                    }
+
                                     _isChecked = true
                                     _checkingPieces.push({ position: newPos, direction: new Position(direction[0], direction[1]) })
                                     break
@@ -188,7 +271,6 @@ function Referee() {
                 } else {
                     break
                 }
-
             }
         })
 
@@ -204,7 +286,6 @@ function Referee() {
             }
         })
 
-        console.log(_isChecked, _checkingPieces, _pins)
         return { _isChecked, _checkingPieces, _pins }
     }
 
@@ -213,9 +294,10 @@ function Referee() {
         const kingPosition = opponentColor(player) === Color.White ? whiteKingPos : blackKingPos
         const kingPiece = _board[kingPosition.x][kingPosition.y]
         const { _isChecked, _checkingPieces, _pins } = getPinsandCheckingPieces(_board, kingPiece, kingPosition)
+        console.log(_isChecked, _checkingPieces, _pins)
 
         if (_isChecked) {
-            console.log("Under Check")
+            setCheckedKing(opponentColor(player)) // kingPiece.color
             if (_checkingPieces.length === 1) {
                 const checking = _checkingPieces[0]
                 const checkingPiece = _board[checking.position.x][checking.position.y]
@@ -230,41 +312,43 @@ function Referee() {
                     for (let i = 1; i < BOARD_SIZE; i += 1) {
                         const validPos = new Position(kingPosition.x + checking.direction.x * i, kingPosition.y + checking.direction.y * i)
                         validTiles.push(validPos)
-                        if (validPos.samePosition(checking.position)) {
+                        if (validPos.isSamePosition(checking.position)) {
                             break
                         }
                     }
                 }
-                console.log("Valid Tiles are : ", validTiles)
 
                 // get all moves as usual
                 getAllMoves(_board, _moves, enPassantPos, _pins)
                 // filter the moves to keep just the moves whose destination is a valid square OR the king moves 
                 _moves = _moves.filter(
-                    move => validTiles.some(tile => tile.samePosition(move.endPos)) ||
-                        move.startPos.samePosition(kingPosition)
+                    move => validTiles.some(tile => tile.isSamePosition(move.endPos)) ||
+                        move.startPos.isSamePosition(kingPosition) // shouldn't we check if king is also moving into a checked position?
                 )
-            } else { //double-check so king has to move
-                // get king location
+            } else {
+                // double-check so king has to move
                 // call function to get just king moves
-                console.log("Double check")
-                const directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]]
+                // const directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]]
                 getKingMoves(_board, kingPiece, kingPosition, _moves, enPassantPos)
             }
         } else {
-            console.log("Not Under Check")
+            // not under check
+            setCheckedKing(null)
             //get all moves as usual
             getAllMoves(_board, _moves, enPassantPos, _pins)
         }
 
-        console.log("Moves are : ", _moves)
         setMoves(_moves)
 
         if (_moves.length === 0) {
             //no valid moves:
             if (_isChecked) { ///another function *******************************
                 setCheckmate(true)
+                showHideModal()
+                setWinner(opponentColor(player)) // is this correct? should be player imo
             } else {
+                showHideModal()
+                setWinner(opponentColor(player)) // same as above
                 setStalemate(true)
             }
         } else {
@@ -278,8 +362,7 @@ function Referee() {
             for (let col = 0; col < BOARD_SIZE; col += 1) {
                 const piece = _board[row][col]
                 const color = opponentColor(player)
-                if (piece.color === color) {
-                    console.log("getting moves for: ", row, col)
+                if (piece.color === color) { // the next player's color
                     getMoves(_board, piece, new Position(row, col), _moves, enPassantPos, pins)
                 }
             }
@@ -315,78 +398,77 @@ function Referee() {
     }
 
     function getPieceMoves(_board: Piece[][], directions: Array<Array<number>>, srcPiece: Piece, srcPosition: Position, moves: Move[], pins: { position: Position, direction: Position }[]) {
-        console.log("getting Piece Moves")
-        let isDirectionValid = Array(directions.length).fill(true);
-        let proceed = true
+        // let isDirectionValid = Array(directions.length).fill(true);
+        // let proceed = true
         let possibleMoves: Move[] = []
 
-        const pinDirection = pins.find(pin => pin.position.samePosition(srcPosition))
-        const isPinned = pinDirection ? true : false
+        const pin = pins.find(pin => pin.position.isSamePosition(srcPosition))
+        const isPinned = pin ? true : false
 
-        while (proceed) {
-            console.log("proceeding...", isDirectionValid)
-            directions.forEach((move_direction, idx) => {
-                if (isDirectionValid[idx]) {
-                    if (!isPinned ||
-                        (pinDirection!.direction.x === move_direction[0] && pinDirection!.direction.y === move_direction[1]) ||
-                        (-pinDirection!.direction.x === move_direction[0] && -pinDirection!.direction.y === move_direction[1])
-                    ) {
-                        const destPosition = new Position(srcPosition.x + move_direction[0], srcPosition.y + move_direction[1])
-                        if (destPosition.isInRange()) {
-                            const destPiece = _board[destPosition.x][destPosition.y] // ************ need to get board *************//
-                            if (destPiece.type === PieceType.Empty) {
-                                possibleMoves.push(new Move(srcPosition, destPosition))
-                            }
-                            else if (destPiece.color === opponentColor(srcPiece.color)) {
-                                possibleMoves.push(new Move(srcPosition, destPosition))
-                                isDirectionValid[idx] = false
-                            }
-                            else {
-                                isDirectionValid[idx] = false
-                            }
-                        } else {
-                            isDirectionValid[idx] = false
+        directions.forEach((move_direction, idx) => {
+            // if the current piece is not pinned or if it is pinned, the direction of piece movement still keeps it pinned
+            if (!isPinned ||
+                (pin!.direction.x === move_direction[0] && pin!.direction.y === move_direction[1]) ||
+                (-pin!.direction.x === move_direction[0] && -pin!.direction.y === move_direction[1])) {
+                for (let index = 1; index < BOARD_SIZE; index++) {
+
+                    const destPosition = new Position(srcPosition.x + move_direction[0] * index, srcPosition.y + move_direction[1] * index)
+                    if (destPosition.isInRange()) {
+                        const destPiece = _board[destPosition.x][destPosition.y]
+                        // blank tile
+                        if (destPiece.type === PieceType.Empty) {
+                            possibleMoves.push(new Move({ startPos: srcPosition, endPos: destPosition }))
+                        }
+                        // tile occupied by opponent piece
+                        else if (destPiece.color === opponentColor(srcPiece.color)) {
+                            possibleMoves.push(new Move({ startPos: srcPosition, endPos: destPosition }))
+                            break
+                        }
+                        // tile occupied by ally piece
+                        else {
+                            break
                         }
                     }
                     else {
-                        isDirectionValid[idx] = false
+                        // tile out of range 
+                        break
+                    }
+                    if (srcPiece.type === PieceType.Knight) {
+                        break;
                     }
                 }
-            })
-
-            if (srcPiece.type === PieceType.Knight) {
-                break;
             }
-            if (srcPiece.type === PieceType.King) {
-                if (!srcPiece.isMoved) {
-                    //Queenside
-                    getCastleMoves(_board, srcPiece, srcPosition, new Position(srcPosition.x, 0), moves)
-                    //Kingside
-                    getCastleMoves(_board, srcPiece, srcPosition, new Position(srcPosition.x, 7), moves)
-
-                }
-                break;
-            }
-            proceed = isDirectionValid.reduce((a, b) => (a || b))
-            directions = directions.map(x => x.map(t => t && t + Math.sign(t)))
-        }
+        });
         moves.push(...possibleMoves)
     }
 
-    function getCastleMoves(_board: Piece[][], kingPiece: Piece, kingPosition: Position, rookPosition: Position, moves: Move[]) {
-        const direction = rookPosition.y < kingPosition.y ? -1 : 1
-        const qsRook = _board[rookPosition.x][rookPosition.y]
-        if (qsRook.type === PieceType.Rook && !qsRook.isMoved) {
-            //move rook also isMoved
-            if (isCastlePathClear(_board, kingPosition, rookPosition)) {
-                moves.push(new Move(kingPosition, new Position(kingPosition.x, kingPosition.y + 2 * direction)))
+    // function getCastleMoves(_board: Piece[][], kingPiece: Piece, kingPosition: Position, rookPosition: Position, moves: Move[]) {
+    //     const direction = rookPosition.y < kingPosition.y ? -1 : 1
+    //     const rook = _board[rookPosition.x][rookPosition.y]
+    //     if (rook.type === PieceType.Rook && !rook.isMoved) {
+    //         // add castle move. Also set isMoved of king and rook to true
+    //         if (isCastlePathClear(_board, kingPosition, rookPosition)) {
+    //             moves.push(new Move(kingPosition, new Position(kingPosition.x, kingPosition.y + 2 * direction)))
+    //         }
+    //     }
+    // }
+
+    function getCastleMoves(_board: Piece[][], kingColor: Color, kingPosition: Position, side: string, possibleCastleMoves: Move[]) {
+        isEligibleForCastle.forEach((obj) => {
+            if (obj.color === kingColor && obj.side === side && obj.value) {
+                // eligible for castle
+                const [direction, y] = side === "Q" ? [-1, 0] : [1, 7]
+                const rookPosition = new Position(kingPosition.x, y)
+                if (isCastlePathClear(_board, kingPosition, rookPosition, direction)) {
+                    possibleCastleMoves.push(new Move({ startPos: kingPosition, endPos: new Position(kingPosition.x, kingPosition.y + 2 * direction), isCastleMove: true }))
+                }
             }
-        }
+        })
     }
 
-    function isCastlePathClear(_board: Piece[][], kingPos: Position, rookPos: Position) {
-        const direction = rookPos.y < kingPos.y ? 1 : -1
-        for (let col = rookPos.y + direction; (col - kingPos.y) !== 0; col += direction) {
+    function isCastlePathClear(_board: Piece[][], kingPos: Position, rookPos: Position, direction: number) {
+        // const direction = rookPos.y < kingPos.y ? 1 : -1
+        for (let col = kingPos.y + direction; (col - rookPos.y) !== 0; col += direction) {
             const piece = _board[kingPos.x][col]
             if (piece.type !== PieceType.Empty) {
                 return false
@@ -399,9 +481,8 @@ function Referee() {
         const row_direction = piece.color === Color.White ? 1 : -1
         const special_row = piece.color === Color.White ? 1 : 6
 
-        const pin = pins.find(pin => pin.position.samePosition(srcPosition))
+        const pin = pins.find(pin => pin.position.isSamePosition(srcPosition))
         const isPinned = pin ? true : false
-        console.log("Pawn pinned", isPinned, pin)
 
         // const kingPosition = opponentColor(player) === Color.White ? whiteKingPos : blackKingPos
         // const kingPiece = _board[kingPosition.x][kingPosition.y]
@@ -409,16 +490,17 @@ function Referee() {
         const forwardPosition = new Position(srcPosition.x + row_direction, srcPosition.y)
         if (forwardPosition.isInRange() && _board[forwardPosition.x][forwardPosition.y].type === PieceType.Empty) {
             if (!isPinned || (pin!.direction.x === row_direction && pin!.direction.y === 0) || (-pin!.direction.x === row_direction && pin!.direction.y === 0)) {
-                moves.push(new Move(srcPosition, forwardPosition))
+                moves.push(new Move({ startPos: srcPosition, endPos: forwardPosition }))
                 if (srcPosition.x === special_row) {
                     const doubleForwardPosition = new Position(forwardPosition.x + row_direction, forwardPosition.y)
                     const doubleForwardPiece = _board[doubleForwardPosition.x][doubleForwardPosition.y]
                     if (doubleForwardPiece.type === PieceType.Empty) {
-                        moves.push(new Move(srcPosition, doubleForwardPosition))
+                        moves.push(new Move({ startPos: srcPosition, endPos: doubleForwardPosition }))
                     }
                 }
             }
         }
+
         let col_direction = 1
         for (let i = 0; i < 2; i += 1) {
             col_direction *= -1
@@ -426,12 +508,12 @@ function Referee() {
             if (diagonalPosition.isInRange()) {
                 if (!isPinned || (pin!.direction.x === row_direction && pin!.direction.y === col_direction) ||
                     (-pin!.direction.x === row_direction && -pin!.direction.y === col_direction)) {
-                    if (enPassantPos.length > 0 && enPassantPos[0].samePosition(new Position(srcPosition.x, srcPosition.y + col_direction))) {
-                        moves.push(new Move(srcPosition, diagonalPosition, true))
+                    if (enPassantPos.length > 0 && enPassantPos[0].isSamePosition(new Position(srcPosition.x, srcPosition.y + col_direction))) {
+                        moves.push(new Move({ startPos: srcPosition, endPos: diagonalPosition, isEnPassantMove: true }))
                     }
                     else if (_board[diagonalPosition.x][diagonalPosition.y].type !== PieceType.Empty &&
                         _board[diagonalPosition.x][diagonalPosition.y].color === opponentColor(piece.color)) {
-                        moves.push(new Move(srcPosition, diagonalPosition))
+                        moves.push(new Move({ startPos: srcPosition, endPos: diagonalPosition }))
                     }
                 }
             }
@@ -439,82 +521,123 @@ function Referee() {
     }
 
     function getKingMoves(_board: Piece[][], piece: Piece, srcPosition: Position, moves: Move[], enPassantPos: Position[]) {
-        console.log("Getting King Moves : ", piece.color, srcPosition)
         const directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]]
         directions.forEach(direction => {
             const destPos = new Position(srcPosition.x + direction[0], srcPosition.y + direction[1])
             if (destPos.isInRange()) {
                 const destPiece = _board[destPos.x][destPos.y]
-                if (destPiece.color !== piece.color) {//enemy or empty piece
+                if (destPiece.color !== piece.color) { //enemy or empty piece // might have to change condition to accomodate empty piece
 
                     const { _isChecked } = getPinsandCheckingPieces(_board, piece, destPos)
-                    console.log("Possibly can move king to - checked? ", _isChecked, destPos)
                     if (!_isChecked) {
-                        moves.push(new Move(srcPosition, destPos))
+                        moves.push(new Move({ startPos: srcPosition, endPos: destPos }))
                     }
                 }
             }
         })
 
-        if (!piece.isMoved) { //additional logic to be added********************************
+        // if (!piece.isMoved) { //additional logic to be added********************************
             //Queenside
-            getCastleMoves(_board, piece, srcPosition, new Position(srcPosition.x, 0), moves)
+            // getCastleMoves(_board, piece, srcPosition, new Position(srcPosition.x, 0), moves)
+            let possibleCastleMoves: Move[] = []
+            getCastleMoves(_board, piece.color, srcPosition, "Q", possibleCastleMoves)
             //Kingside
-            getCastleMoves(_board, piece, srcPosition, new Position(srcPosition.x, 7), moves)
+            // getCastleMoves(_board, piece, srcPosition, new Position(srcPosition.x, 7), moves)
+            getCastleMoves(_board, piece.color, srcPosition, "K", possibleCastleMoves)
 
-        }
+            possibleCastleMoves.forEach((move) => {
+                const { _isChecked } = getPinsandCheckingPieces(_board, piece, move.endPos)
+                if (!_isChecked) {
+                    moves.push(move)
+                }
+            })
+        // }
     }
 
-    function isTileUnderAttack(position: Position, _board:Piece[][]):boolean{
-        const color = opponentColor(player)
-        let moves:Move[] = []
-        findMoves(_board,[])
+    function isTileUnderAttack(position: Position, _board: Piece[][]): boolean {
+        // const color = opponentColor(player)
+        // let moves: Move[] = []
+        findMoves(_board, [])
         return false
     }
 
     function promotePawn(type: PieceType) {
         promotionModalRef.current?.classList.add("hidden")
-        console.log("Type selected = ", type)
-        setBoard(prevBoard => {
-            let newBoard: Piece[][] = []
-            for (let row = 0; row < BOARD_SIZE; row += 1) {
-                newBoard[row] = []
-                for (let col = 0; col < BOARD_SIZE; col += 1) {
-                    if (promotionPawnPosition?.samePosition(new Position(row, col))) {
-                        let piece = prevBoard[row][col].clone()
-                        piece.type = type
-                        piece.image = `${type}_${piece.color}.png`
-                        console.log("New piece = ", piece)
-                        newBoard[row].push(piece)
-                    } else {
-                        newBoard[row].push(prevBoard[row][col])
-                    }
+
+        const move = new Move({ startPos: moveStartPos!, endPos: promotionPawnPosition! }) //set isPawnPromotion = true?????????
+        const notation = move.getNotation({ srcPiece: new Piece(PieceType.Pawn, player), destPiece: board[promotionPawnPosition!.x][promotionPawnPosition!.y], isPawnPromotionMove: true, promotionType: type })
+        addNotation(notation, true)
+        let newBoard: Piece[][] = []
+        for (let row = 0; row < BOARD_SIZE; row += 1) {
+            newBoard[row] = []
+            for (let col = 0; col < BOARD_SIZE; col += 1) {
+                if (promotionPawnPosition!.isSamePosition(new Position(row, col))) {
+                    let piece = board[row][col].clone()
+                    piece.type = type
+                    piece.image = `${type}_${piece.color}.png`
+                    newBoard[row].push(piece)
+                } else {
+                    newBoard[row].push(board[row][col])
                 }
             }
-            return newBoard
-        })
+        }
+        setBoard(prevBoard => newBoard)
         setPromotionPawnPosition(null)
+        // setMoveStartPos(null)
+        postMoveSteps(newBoard, [])
+    }
+
+    function addNotation(notation: string, pawnPromotion = false) {
+        const movePlayedBy = player // pawnPromotion ? opponentColor(player) : player  removed now
+        if (notation) {
+            if (movePlayedBy === Color.Black) {
+                setPlayedMoves(prev => {
+                    const newArr = [...prev]
+                    newArr[newArr.length - 1].push(notation)
+                    return newArr
+                })
+            } else {
+                setPlayedMoves(prev => [...prev, [notation]])
+            }
+        }
+    }
+
+    function showHideModal() {
+        endGameRef.current?.classList.toggle("hidden")
     }
 
     const boardProps = {
-        board, validMoves, handleClick, capturedBlack, capturedWhite
+        board, validMoves, handleClick, capturedBlack, capturedWhite, lastMove, moveStartPos, checkedKing
     }
 
     const promotionModalProps = {
         promotePawn,
-        color: opponentColor(player)
+        color: player // opponentColor(player)
+    }
+
+    const endGameProps = {
+        winner: opponentColor(player),
+        showHideModal
+    }
+
+    const movesProps = {
+        moves: playedMoves
     }
 
     ////max-w-full
 
     return (
-        <div className="bg-slate-200 flex flex-col w-full">
-            {/* <Header /> */}
+        <div className="bg-gradient-to-b from-slate-200 to-slate-400 flex flex-col w-full h-full border-2 border-red-500">
+            <div className="relative flex flex-col md:flex-row border-2 border-purple-400">
+                <Chessboard {...boardProps} />
+                <Moves {...movesProps} />
+            </div>
             <div className="hidden" ref={promotionModalRef}>
                 <PromotionModal {...promotionModalProps} />
             </div>
-            <Chessboard {...boardProps} />
-            <Footer />
+            <div ref={endGameRef} className="w-full h-full hidden">{/*className="hidden" */}
+                <EndGame {...endGameProps} />
+            </div>
         </div>
     )
 }
