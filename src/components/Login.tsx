@@ -17,6 +17,7 @@ function Login() {
             const bodyFormData = new FormData()
             bodyFormData.append("username", formData.email)
             bodyFormData.append("password", formData.password)
+
             api.post("/login", bodyFormData, { headers: { "Content-Type": "multipart/form-data" } })
                 .then(response => {
                     setAuth(response.data.access_token)
@@ -31,11 +32,11 @@ function Login() {
                     } else {
                         setErrorText("Unexpected error occured")
                     }
-                    errRef.current?.focus()
+                    errRef.current!.focus()
                 })
         } catch (error) {
             setErrorText("Unexpected error occured")
-            errRef.current?.focus()
+            errRef.current!.focus()
         }
     }
 
@@ -47,19 +48,24 @@ function Login() {
         setErrorText("")
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         setAuth("")
     }, [])
 
     return (
-        <div className="m-auto p-6 h-full w-full text-lg bg-slate-400">{/* border-2 border-amber-300 */}
+        <div className="m-auto p-6 h-full w-full text-lg bg-slate-400">
             <form
                 onSubmit={e => handleSubmit(e)}
                 className="w-full md:w-4/5 lg:w-2/3 xl:w-1/2 m-auto box-border px-2 py-6 md:py-12 text-lg rounded-xl bg-slate-200"
             >
                 <div className="flex flex-col justify-between space-y-20 mx-4 md:w-4/5 md:max-w-lg md:mx-auto">
                     <div className="flex flex-col justify-between">
-                        {errorText && <div ref={errRef} className="text-red-500 p-2 mb-4 font-semibold bg-red-100 shadow-md rounded-lg border-red-500 border-2">{errorText}!</div>}
+                        {
+                            errorText &&
+                            <div ref={errRef} className="text-red-500 p-2 mb-4 font-semibold bg-red-100 shadow-md rounded-lg border-red-500 border-2">
+                                {errorText}!
+                            </div>
+                        }
                         <label
                             htmlFor="email"
                             className="font-semibold text-xl py-2">
@@ -91,7 +97,9 @@ function Login() {
                             className="bg-amber-300 px-8 py-4 text-xl font-semibold rounded-lg shadow-lg hover:bg-amber-400">
                             Login
                         </button>
-                        <p className="text-center">Don't have an account? <Link to="/register" className="text-blue-600 underline hover:text-blue-800">Register</Link></p>
+                        <p className="text-center">
+                            Don't have an account? <Link to="/register" className="text-blue-600 underline hover:text-blue-800">Register</Link>
+                        </p>
                     </div>
                 </div>
             </form>

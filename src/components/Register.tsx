@@ -29,12 +29,12 @@ function Register() {
                     } else {
                         setErrorText("Unexpected error occured")
                     }
-                    errRef.current?.focus()
+                    errRef.current!.focus()
                 })
         }
         catch (err) {
             setErrorText("Unexpected error occured")
-            errRef.current?.focus()
+            errRef.current!.focus()
         }
     }
 
@@ -52,7 +52,7 @@ function Register() {
         setErrorText("")
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         setAuth("")
     }, [])
 
@@ -81,7 +81,8 @@ function Register() {
                         <label
                             htmlFor="password"
                             className="font-semibold text-xl py-2 mt-8">
-                            Password</label>
+                            Password
+                        </label>
                         <input
                             id="password"
                             type="password"
@@ -89,11 +90,18 @@ function Register() {
                             value={formData.password}
                             className="rounded-lg p-2 border-2 border-slate-300"
                             onChange={e => handleChange(e)} />
-                        <p className="text-red-500">{formData.password.length > 0 && !re.test(formData.password) ? "Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character [@$!%*?&]" : ""}</p>
+                        <p className="text-red-500">
+                            {
+                                formData.password.length > 0 && !re.test(formData.password) ?
+                                    "Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character [@$!%*?&]" :
+                                    ""
+                            }
+                        </p>
                         <label
                             htmlFor="confirmPassword"
                             className="font-semibold text-xl py-2 mt-8">
-                            Confirm Password</label>
+                            Confirm Password
+                        </label>
                         <input
                             id="confirmPassword"
                             type="password"
@@ -102,7 +110,14 @@ function Register() {
                             className="rounded-lg p-2 border-2 border-slate-300"
                             onChange={e => handleChange(e)}
                             disabled={formData.password.length === 0 || !re.test(formData.password)} />
-                        <p className={(formData.confirmPassword.length !== 0) ? (formData.password === formData.confirmPassword ? "text-green-500" : "text-red-500") : ""}>{(formData.confirmPassword.length !== 0) && (formData.password === formData.confirmPassword ? "Passwords match" : "Passwords don't match")}</p>
+                        <p className={(formData.confirmPassword.length !== 0) ? (formData.password === formData.confirmPassword ? "text-green-500" : "text-red-500") : ""}>
+                            {
+                                (formData.confirmPassword.length !== 0) && (formData.password === formData.confirmPassword ?
+                                    "Passwords match" :
+                                    "Passwords don't match"
+                                )
+                            }
+                        </p>
                     </div>
                     <div className="flex flex-col justify-between space-y-10">
                         <button
@@ -110,7 +125,9 @@ function Register() {
                             className="bg-amber-300 px-8 py-4 text-xl font-semibold rounded-lg shadow-lg hover:bg-amber-400">
                             Register
                         </button>
-                        <p className="text-center">Already have an account? <Link to="/login" className="text-blue-600 underline hover:text-blue-800">Login</Link></p>
+                        <p className="text-center">
+                            Already have an account? <Link to="/login" className="text-blue-600 underline hover:text-blue-800">Login</Link>
+                        </p>
                     </div>
                 </div>
             </form>

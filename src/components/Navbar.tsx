@@ -3,14 +3,18 @@ import { useContext, useRef } from "react"
 import AuthContext from "../context/AuthProvider"
 
 function Navbar() {
+
     const { auth, setAuth } = useContext(AuthContext)
     const collapsibleMenu = useRef<HTMLDivElement>(null)
     const navigate = useNavigate()
+
     const buttonStyle = "w-24 lg:w-32 px-4 py-4 lg:px-8 m-2 lg:m-4 text-lg text-center font-semibold rounded-lg shadow-lg bg-amber-300 hover:bg-amber-400 transition duration-300"
     const collapsibleMenuStyle = " block p-2 bg-slate-200 border-y-2 border-slate-400 hover:bg-amber-300 active:bg-amber-200 transition duration-300"
+
     const showHideMenu = () => {
         collapsibleMenu.current?.classList.toggle("hidden")
     }
+
     const navigateBack = () => {
         navigate(-1)
     }
@@ -37,22 +41,36 @@ function Navbar() {
                                 className="object-contain w-full h-full"></img>
                         </Link>
                     </div>
-                    {auth && <div className="absolute right-4 hidden md:flex">
-                        <Link to="/menu" className={buttonStyle}>MENU</Link>
-                        <Link to="/login" className={buttonStyle}>
-                            <button onClick={e => setAuth("")}>LOGOUT</button>
-                        </Link>
-                    </div>}
-                    {auth && <button className="flex md:hidden absolute right-4" onClick={showHideMenu}>
-                        <img
-                            src="../../assets/images/menu.png"
-                            alt="menu"
-                            className="object-contain w-full h-full" />
-                    </button>}
+                    {
+                        auth &&
+                        <div className="absolute right-4 hidden md:flex">
+                            <Link to="/menu" className={buttonStyle}>MENU</Link>
+                            <Link to="/login" className={buttonStyle}>
+                                <button onClick={e => setAuth("")}>LOGOUT</button>
+                            </Link>
+                        </div>
+                    }
+                    {
+                        auth &&
+                        <button className="flex md:hidden absolute right-4" onClick={showHideMenu}>
+                            <img
+                                src="../../assets/images/menu.png"
+                                alt="menu"
+                                className="object-contain w-full h-full" />
+                        </button>
+                    }
                 </div>
                 <div ref={collapsibleMenu} className="hidden md:hidden border-2 border-green-400">
-                    <Link to="/menu" className={collapsibleMenuStyle} onClick={showHideMenu}>MENU</Link>
-                    <Link to="/login" className={collapsibleMenuStyle} onClick={showHideMenu}>
+                    <Link
+                        to="/menu"
+                        className={collapsibleMenuStyle}
+                        onClick={showHideMenu}>
+                        MENU
+                    </Link>
+                    <Link
+                        to="/login"
+                        className={collapsibleMenuStyle}
+                        onClick={showHideMenu}>
                         <button onClick={e => setAuth("")}>LOGOUT</button>
                     </Link>
                 </div>

@@ -1,18 +1,18 @@
 import { PieceType } from "../Constants";
-import { Piece } from "./Piece";
+import { isEqual } from "../utilities/pieceUtilities";
 import { Position } from "./Position";
 
 interface MoveParams {
     startPos: Position
     endPos: Position
-    isEnPassantMove?: boolean
+    isEnPassantCaptureMove?: boolean
     isCastleMove?: boolean
     // isPawnPromotion: boolean
 }
 
 interface NotationParams {
-    srcPiece: Piece
-    destPiece: Piece
+    srcPiece: string
+    destPiece: string
     isPawnPromotionMove?: boolean
     promotionType?: PieceType
 }
@@ -20,14 +20,14 @@ interface NotationParams {
 export class Move {
     startPos: Position
     endPos: Position
-    isEnPassantMove: boolean
+    isEnPassantCaptureMove: boolean
     isCastleMove: boolean
     // isPawnPromotion: boolean
 
-    constructor({ startPos, endPos, isEnPassantMove = false, isCastleMove = false }: MoveParams) {
+    constructor({ startPos, endPos, isEnPassantCaptureMove = false, isCastleMove = false }: MoveParams) {
         this.startPos = startPos
         this.endPos = endPos
-        this.isEnPassantMove = isEnPassantMove
+        this.isEnPassantCaptureMove = isEnPassantCaptureMove
         this.isCastleMove = isCastleMove
         // this.isPawnPromotion = isPawnPromotion
     }
@@ -47,6 +47,11 @@ export class Move {
             { type: PieceType.Knight, abbr: 'N' }
         ]
 
+        function isEqual2(piece: string, type: PieceType) {
+            console.log(piece, type)
+            return piece.toLowerCase() === type
+        }
+
         // const srcPiece = _board[this.startPos.x][this.startPos.y]
         // const destPiece = _board[this.endPos.x][this.endPos.y]
         let notation = []
@@ -56,12 +61,12 @@ export class Move {
         }
 
         // remove the condition and just keep body for full notation
-        if (srcPiece.type !== PieceType.Pawn) {
-            notation.push(typeToAbbr.find(obj => obj.type === srcPiece.type)!.abbr)
+        if (!isEqual(srcPiece, PieceType.Pawn)) {
+            notation.push(typeToAbbr.find(obj => isEqual2(srcPiece, obj.type))!.abbr)
         }
 
-        if (destPiece.type !== PieceType.Empty) {
-            if (srcPiece.type === PieceType.Pawn) {
+        if (destPiece !== PieceType.Empty) {
+            if (isEqual(srcPiece, PieceType.Pawn)) {
                 notation.push(colToFile[this.endPos.y])
             }
             //captured so append x
@@ -71,12 +76,12 @@ export class Move {
         notation.push(colToFile[this.endPos.y])
         notation.push(rowToRank[this.endPos.x])
 
-        if (this.isEnPassantMove) {
+        if (this.isEnPassantCaptureMove) {
             notation.push(" e.p.")
         }
 
         if (isPawnPromotionMove) {//(this.isPawnPromotion){
-            notation.push(typeToAbbr.find(obj => obj.type === promotionType)!.abbr)
+            notation.push(typeToAbbr.find(obj => isEqual(promotionType, obj.type))!.abbr)
         }
 
         return notation.join('')

@@ -8,7 +8,7 @@ interface UserStats {
 }
 
 function UserProfile() {
-    const [stats, setStats] = useState<UserStats[]>([{ name: "played", value: 10 }, { name: "won", "value": 2 }, { name: "lost", "value": 3 }, { name: "tie", "value": 5 }])
+    const [stats, setStats] = useState<UserStats[]>([{ name: "played", value: 0 }, { name: "won", "value": 0 }, { name: "lost", "value": 0 }, { name: "tie", "value": 0 }])
     const [errorText, setErrorText] = useState("")
     const { auth } = useContext(AuthContext)
     const user = "shruti97.sawant@gmail.com" //********************* change this ******************************/
@@ -41,7 +41,8 @@ function UserProfile() {
 
     const styleHeader = "bg-gradient-to-b from-slate-400 to-slate-500 text-white p-2 rounded-lg drop-shadow-xl shadow-slate-400 uppercase font-medium "
     let statsList: JSX.Element[] = [];
-    stats?.forEach((stat, i) => {
+
+    stats?.forEach(stat => {
         statsList.push(
             <div className="basis-1/3 grow bg-slate-200 rounded-lg shadow-lg shadow-slate-100 p-4 text-center flex flex-col gap-4">
                 <div className={styleHeader}>{stat.name}</div>
@@ -53,10 +54,11 @@ function UserProfile() {
     })
 
     return (
-        // <Scorecard />
         <div className="w-full flex flex-col justify-center items-center gap-8 p-4 pt-8">
-            <div className=" w-full md:w-2/3 lg:w-3/5 text-center text-xl font-semibold p-4 shadow-inner shadow-amber-200 rounded-xl bg-amber-300">My Statistics</div>
-            <div className="flex flex-wrap flex-col md:flex-row gap-8 w-full md:w-2/3 lg:w-3/5 justify-between">
+            <div className=" w-full md:w-2/3 lg:w-3/5 text-center text-xl font-semibold p-4 shadow-inner shadow-amber-200 rounded-xl bg-amber-300">
+                My Statistics
+            </div>
+            <div className="flex flex-wrap flex-col md:flex-row gap-8 justify-between w-full md:w-2/3 lg:w-3/5">
                 {statsList}
             </div>
         </div>

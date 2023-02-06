@@ -1,43 +1,61 @@
 import React from "react";
 import { IMAGE_LOC, Color, PieceType } from "../Constants";
-import { Piece, Position } from "../models";
+import { Position } from "../models";
 
 interface Props {
-    piece: Piece
+    piece: string
+    position: Position
     backgroundColor: Color
     valid: boolean;
-    position: Position
-    handleClick: (event: React.MouseEvent, piece: Position, valid: boolean) => void
     highlight: boolean
     checkedKing: Color|null
+    handleClick: (event: React.MouseEvent, piece: Position, valid: boolean) => void
+    flipBoard: boolean
   }
 
-function Tile({piece, backgroundColor, valid, position, handleClick, highlight, checkedKing} : Props) {
+function Tile({piece, backgroundColor, valid, position, handleClick, highlight, checkedKing, flipBoard} : Props) {
+    
+    // returns true if the piece = PieceType passed
+    function isEqual(piece: string, type: PieceType) {
+        return piece.toLowerCase() === type
+    }
 
-    const validImage = piece.type === PieceType.Empty? "valid_pos.png":"valid_pos_capture.png"
-    const tileBackgroundImage = checkedKing && piece.type === PieceType.King && piece.color === checkedKing ? "linear-gradient(rgb(248, 113, 113, 1), rgb(248, 113, 113, 1))" : `url(${IMAGE_LOC}spot_${backgroundColor}.png)`//props.color ? "spot_b.png" : "spot_w.png" 
+    // return color of piece
+    function getColor(symbol: string) {
+        return symbol.toLowerCase() === symbol ? Color.White : Color.Black
+    }
+
+    // return name of PieceType
+    function getName(symbol: string){
+        switch(symbol.toLowerCase()){
+            case "p": return "pawn"
+            case "r": return "rook"
+            case "b": return "bishop"
+            case "n": return "knight"
+            case "q": return "queen"
+            case "k": return "king"
+        }
+    }
+
+    const validImage = isEqual(piece, PieceType.Empty) ? "valid_pos.png":"valid_pos_capture.png"
+    const tileBackgroundImage = checkedKing && isEqual(piece, PieceType.King) && getColor(piece) === checkedKing ? "linear-gradient(rgb(248, 113, 113, 1), rgb(248, 113, 113, 1))" : `url(${IMAGE_LOC}spot_${backgroundColor}.png)`
     const rowToRank = [1, 2, 3, 4, 5, 6, 7, 8]
     const colToFile = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    const rowCoordinate = position.y === 0? rowToRank[position.x] : undefined
-    const colCoordinate = position.x === 0? colToFile[position.y] : undefined
-    const textColor = backgroundColor === 'w' ? "text-slate-700" : "text-white" 
-    const highlightImage = "linear-gradient(rgb(253, 230, 148, 0.45), rgb(253, 230, 148, 0.45))" //highlight? " bg-gradient-to-r from-amber-700 to-amber-300 ":""
-    
+    const firstLine = flipBoard ? 7 : 0
+    const rowCoordinate = position.y === firstLine? rowToRank[position.x] : undefined
+    const colCoordinate = position.x === firstLine? colToFile[position.y] : undefined
+    const textColor = backgroundColor === Color.White ? "text-slate-700" : "text-white" 
+    const highlightImage = "linear-gradient(rgb(253, 230, 148, 0.45), rgb(253, 230, 148, 0.45))"
 
     let img : Array<string> = []
-    // valid && img.push(validImage)
 
-    // piece.image && img.push(piece.image)
-    // highlight && img.push(highlightImage)
-    // img.push(tileBackgroundImage)
-
-    piece.image && img.push(`url(${IMAGE_LOC}${piece.image})`)
+    if (piece !== PieceType.Empty){
+        img.push(`url(${IMAGE_LOC}${getName(piece)}_${getColor(piece)}.png)`)
+    }
     highlight && img.push(highlightImage)
     img.push(tileBackgroundImage)
     
-    //const bgImg: string = img.map(pic => `url(${IMAGE_LOC}${pic})`).join(", ")
     const bgImg: string = img.join(", ")
-    //if(checkedKing){console.log("Checked", position, bgImg)}
     
     return(
         <div  style={
@@ -58,9 +76,8 @@ function Tile({piece, backgroundColor, valid, position, handleClick, highlight, 
                     backgroundSize: "contain",
                 }
             }></div>}
-            {rowCoordinate && <p className={`text-lg font-semibold opaciy-80 absolute left-1 top-0.5 ${textColor}`}>{rowCoordinate}</p>} {/*text-amber-400  */}
+            {rowCoordinate && <p className={`text-lg font-semibold opaciy-80 absolute left-1 top-0.5 ${textColor}`}>{rowCoordinate}</p>}
             {colCoordinate && <p className={`text-lg font-semibold opaciy-80 absolute right-1 bottom-0.5 ${textColor}`}>{colCoordinate}</p>}
-            {/*<p className="text-amber-400 text-lg font-semibold opacity-60">{colToFile[position.y]}{rowToRank[position.x]}</p> {/*absolute right-2 bottom-2 */}
         </div>
     )
 }

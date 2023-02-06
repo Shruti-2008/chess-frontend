@@ -12,12 +12,14 @@ interface userType {
 function Menu() {
     const buttonStyle = "p-6 text-center align-middle rounded-xl shadow-lg bg-amber-300 hover:bg-amber-400 transition duration-300"
     const isOngoingGame = false
+
     const [users, setUsers] = useState<userType[]>([])
     const [filteredUsers, setFilteredUsers] = useState<userType[]>([])
     const [opponent, setOpponent] = useState("")
     const [searchText, setSearchText] = useState("")
-    const { auth } = useContext(AuthContext)
     const [errorText, setErrorText] = useState("")
+    const { auth } = useContext(AuthContext)
+
     const errRef = useRef<HTMLParagraphElement>(null)
     const modalRef = useRef<HTMLDivElement>(null)
 
@@ -40,14 +42,14 @@ function Menu() {
                     } else {
                         setErrorText("Unexpected error occured")
                     }
-                    errRef.current?.focus()
+                    errRef.current!.focus()
                 })
         }
         catch (error) {
             setErrorText("Unexpected error occured")
-            errRef.current?.focus()
+            errRef.current!.focus()
         }
-        modalRef.current?.classList.toggle("hidden")
+        modalRef.current!.classList.toggle("hidden")
     }
 
     function hideModal() {
@@ -65,15 +67,16 @@ function Menu() {
                 onClick={(e) => handleClick(e)}
                 className={`flex items-center gap-4 p-2 m-2 text-lg overflow-x-auto no-scrollbar rounded-md shadow-md border-slate-200 border-solid border-2 transition duration-300 ${selectedStyle}`}
             >
-                <img src="../../assets/images/user_slate_300.png" alt="user" className="object-contain w-12 h-12" />
+                <img
+                    src="../../assets/images/user_slate_300.png"
+                    alt="user"
+                    className="object-contain w-12 h-12" />
                 <p>{user.email}</p>
             </div>
-
         )
     }
 
-    var userList = filteredUsers.map(user => getUserElement(user)
-    )
+    var userList = filteredUsers.map(user => getUserElement(user))
 
     const handleChange = (e: React.ChangeEvent) => {
         const element = e.target as HTMLInputElement

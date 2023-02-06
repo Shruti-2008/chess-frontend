@@ -1,4 +1,5 @@
 import { Color, IMAGE_LOC, PieceType } from "../Constants"
+import { getName } from "../utilities/pieceUtilities"
 
 interface Props {
     alignright: boolean
@@ -7,6 +8,7 @@ interface Props {
 }
 
 function UserCard(props: Props) {
+
     const pos = props.alignright ? "md:ml-auto md:mr-2" : "md:mr-auto md:ml-2"
     let piecesCaptured = []
 
@@ -15,19 +17,27 @@ function UserCard(props: Props) {
         let temp = []
 
         if (piece.value > 0) {
-            const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
+            const srcUrl = `${IMAGE_LOC}${getName(piece.type)}_${props.color}.png`
             const element =
                 <div key={`${i}_1`} className="h-10">
-                    <img src={srcUrl} alt={piece.type} className="object-contain w-full h-full" />
+                    <img
+                        src={srcUrl}
+                        alt={piece.type}
+                        className="object-contain w-full h-full"
+                    />
                 </div>
             temp.push(element)
 
             for (let j = 2; j <= piece.value; j++) {
-                //push the rest shifted to left
-                const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png`
+                // push the rest shifted to left
+                // const srcUrl = `${IMAGE_LOC}${piece.type}_${props.color}.png` #int# remove
                 const element =
-                    <div key={`${i}_${j}`} className={`relative -left-6 -mr-6 h-10`}>
-                        <img src={srcUrl} alt={piece.type} className="object-contain w-full h-full" />
+                    <div key={`${i}_${j}`} className="relative -left-6 -mr-6 h-10">
+                        <img
+                            src={srcUrl}
+                            alt={piece.type}
+                            className="object-contain w-full h-full"
+                        />
                     </div>
                 temp.push(element)
             }
@@ -55,7 +65,8 @@ function UserCard(props: Props) {
                     <img
                         src="../../assets/images/user_slate_400.png"
                         alt="captured_pieces"
-                        className="object-contain h-10 max-h-12" />
+                        className="object-contain h-10 max-h-12"
+                    />
                     <h4 className="font-medium text-lg border">Shruti2008</h4>
                 </summary>
                 <div className="flex flex-row overflow-x-auto pt-2">
@@ -64,8 +75,6 @@ function UserCard(props: Props) {
                         <div className="h-10"></div>}
                 </div>
             </details>
-
-
         </div>
     )
 }

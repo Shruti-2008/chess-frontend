@@ -13,6 +13,7 @@ const Moves = ({ moves }: Props) => {
     const cellStyle = "p-2 text-center first:rounded-l-lg last:rounded-r-lg border-b-2 border-slate-400 border-collapse"
 
     const moveRef = useRef<HTMLDivElement>(null)
+    
     useEffect(()=>{
         if(moveRef.current){
             moveRef.current.scrollTop= moveRef.current.scrollHeight
@@ -23,12 +24,23 @@ const Moves = ({ moves }: Props) => {
     moves.forEach((move: string[], i: number) => {
         moveSet.push(
             <tr className={rowStyle} key={i}>
-                <td className={cellStyle}>{i}</td>
+                <td className={cellStyle}>{i+1}</td>
                 <td className={cellStyle}>{move[0]}</td>
                 <td className={cellStyle}>{move[1]}</td>
             </tr>
         )
     })
+    if (moveSet.length < 20){
+        let k = moveSet.length
+        while (k < 20){
+            moveSet.push(<tr className={rowStyle} key={moveSet.length + 1}>
+                <td className={cellStyle}>{moveSet.length + 1}</td>
+                <td className={cellStyle}>{}</td>
+                <td className={cellStyle}>{}</td>
+            </tr>)
+            k+= 1
+        }
+    }
 
     return (
         <div className="overflow-y-auto md:absolute md:left-2/3 md:bottom-0 md:right-0 md:top-0 mx-auto w-full md:w-1/3 border-cyan-300 border-2 mt-8 mb-8 p-2 pt-0" ref={moveRef}>
