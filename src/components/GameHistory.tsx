@@ -1,50 +1,119 @@
-import { gameHistory } from "./games"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import ErrorPage from "./ErrorPage";
+import GameService from "../services/gameService";
+import { GameOverview } from "../utilities/commonInterfaces";
+import TokenService from "../services/tokenService";
+import AuthService from "../services/authService";
+import { Color, IMAGE_LOC } from "../Constants";
 
 function GameHistory() {
+  const navigate = useNavigate();
+  const [gameHistory, setGameHistory] = useState<GameOverview[]>([]);
+  const [errorText, setErrorText] = useState("");
 
-    const headingStyle = "p-1 bg-amber-300 first:rounded-l-md last:rounded-r-md border-b-2 border-slate-400 border-collapse"
-    const rowStyle = "m-1 bg-slate-200 hover:bg-amber-100"
-    const cellStyle = "p-2 text-center first:rounded-l-lg last:rounded-r-lg border-b-2 border-slate-400 border-collapse"
+  const gridHeaderStyle =
+    "border-b-4 border-slate-400 border-collapse md:text-lg lg:text-xl font-bold bg-gradient-to-b from-amber-400 to-amber-200 p-2 text-center lg:p-6 md:p-4 flex items-center justify-center"; //border-collapse
+  const gridItemStyle =
+    "border-b-2 border-slate-400 border-collapse bg-slate-200 text-center p-2 group-hover:bg-gradient-to-b group-hover:from-amber-200 group-hover:to-amber-50 group-hover:border-y-4 group-hover:border-amber-200 transition duration-300 md:text-lg lg:text-xl lg:p-8 md:p-4";
 
-    let gameTiles: JSX.Element[] = []
-    gameHistory.forEach((game, i) => {
-        gameTiles.push(
-            <tr className={rowStyle} key={i}>
-                <td className={cellStyle}>{game.white}</td>
-                <td className={cellStyle}>{game.black}</td>
-                <td className={cellStyle}>{game.noOfMoves}</td>
-                <td className={cellStyle}>{game.result}</td>
-                <td className={`${cellStyle} hidden md:table-cell`}>{game.date}</td>
-                <td className={cellStyle}>
-                    <Link
-                        to={`/history/${game.id}`}
-                        className="px-3 md:px-4 py-1 bg-slate-300 hover:bg-amber-300 rounded"
-                    >
-                        Link
-                    </Link>
-                </td>
-            </tr>
-        )
-    })
+  useEffect(() => {
+    // #int# comment below later
 
-    return (
-        <div className="h-full m-auto p-4">
-            <table className="table-fixed border-b-4 border-amber-300 m-auto w-full md:w-5/6 lg:w-3/4 text-md md:text-xl">
-                <tbody>
-                    <tr>
-                        <th className={headingStyle}>White</th>
-                        <th className={headingStyle}>Black</th>
-                        <th className={headingStyle}>Moves</th>
-                        <th className={headingStyle}>Result</th>
-                        <th className={`${headingStyle} w-1/4 hidden md:table-cell `}>Date</th>
-                        <th className={headingStyle}>Link</th>
-                    </tr>
-                    {gameTiles}
-                </tbody>
-            </table>
+    try {
+      GameService.getConcludedGames()
+        .then((games) => setGameHistory(games))
+        .catch((error) => {
+          if (!error?.response && error.request) {
+            setErrorText("No response from server");
+          } else if (error.response && error.response.status === 403) {
+            AuthService.logout();
+            navigate("/login");
+          } else if (error.response && error.response.status === 400) {
+            //technical database details exposed
+            setErrorText(error.response.data.detail);
+          } else {
+            setErrorText("Unexpected error occured");
+          }
+        });
+    } catch (error) {
+      setErrorText("Unexpected error occured");
+    }
+  }, []);
+
+  const errorPageProps = {
+    obj: "game history",
+    errorText: errorText,
+  };
+
+  let gridTiles: JSX.Element[] = [];
+  gameHistory.forEach((game, i) => {
+    gridTiles.push(
+      <Link
+        to={`/history/${game.id}`}
+        className="group contents"
+        id={game.id.toString()}
+      >
+        {/* <div
+          className={`${gridItemStyle} flex items-center gap-4 rounded-l-lg group-hover:border-l-4`}
+        >
+          <img
+            src={`${IMAGE_LOC}spot_${
+              game.opponentColor === Color.White ? "w" : "b"
+            }.png`}
+            alt="opponent color"
+            className="h-6 w-6 border-2 border-amber-400"
+          />
+          <p>{game.opponent}</p>
+        </div> */}
+        <div
+          className={`${gridItemStyle} flex flex-col gap-2 rounded-l-lg group-hover:border-l-4`}
+        >
+          <div className="flex flex-row items-center gap-4">
+            <img
+              src={`${IMAGE_LOC}spot_w.png`}
+              alt="white color"
+              className="h-6 w-6 border-2 border-amber-400"
+            />
+            <p>{game.whitePlayer}</p>
+          </div>
+          <div className="flex flex-row items-center gap-4">
+            <img
+              src={`${IMAGE_LOC}spot_b.png`}
+              alt="white color"
+              className="h-6 w-6 border-2 border-amber-400"
+            />
+            <p>{game.blackPlayer}</p>
+          </div>
         </div>
-    )
+        <div className={gridItemStyle}>{game.result}</div>
+        <div className={gridItemStyle}>{game.endReason}</div>
+        <div className={gridItemStyle}>{game.date.toDateString()}</div>
+        <div className={`${gridItemStyle} rounded-r-lg group-hover:border-r-4`}>
+          {game.noOfMoves}
+        </div>
+      </Link>
+    );
+  });
+
+  return errorText ? (
+    <ErrorPage {...errorPageProps} />
+  ) : (
+    <div className="m-auto flex h-full flex-col gap-8 p-4 pt-8">
+      <div className="m-auto flex w-full justify-center">
+        <div className="grid grid-cols-[max-content_max-content_max-content_max-content_max-content] overflow-x-auto ">
+          <div className={`${gridHeaderStyle} rounded-l-lg`}>Players</div>
+          <div className={gridHeaderStyle}>Result</div>
+          <div className={gridHeaderStyle}>End Reason</div>
+          <div className={gridHeaderStyle}>Date</div>
+          <div className={`${gridHeaderStyle} rounded-r-lg`}>Moves</div>
+          {gridTiles}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default GameHistory
+export default GameHistory;
+
+// no of moves calculated as? check

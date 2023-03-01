@@ -1,67 +1,80 @@
-import { useState, useContext } from "react"
-import { api } from "../services/authService"
-import AuthContext from "../context/AuthProvider"
-
-interface UserStats {
-    name: string
-    value: number
-}
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ErrorPage from "./ErrorPage";
+import { UserStats } from "../utilities/commonInterfaces";
+import GameService from "../services/gameService";
+import AuthService from "../services/authService";
 
 function UserProfile() {
-    const [stats, setStats] = useState<UserStats[]>([{ name: "played", value: 0 }, { name: "won", "value": 0 }, { name: "lost", "value": 0 }, { name: "tie", "value": 0 }])
-    const [errorText, setErrorText] = useState("")
-    const { auth } = useContext(AuthContext)
-    const user = "shruti97.sawant@gmail.com" //********************* change this ******************************/
+  const [stats, setStats] = useState<UserStats[]>([
+    { result: "played", count: 0 },
+    { result: "won", count: 0 },
+    { result: "lost", count: 0 },
+    { result: "tie", count: 0 },
+  ]);
+  const [errorText, setErrorText] = useState("");
+  const navigate = useNavigate();
 
-    const getStats = () => {
-        setStats([{ name: "played", value: 10 }, { name: "won", "value": 2 }, { name: "lost", "value": 3 }, { name: "tie", "value": 5 }])
-        try {
-            const config = {
-                headers: { Authorization: `Bearer ${auth}` }
-            };
-            api.get(`/stats/${user}`, config)
-                .then(response => {
-                    console.log(response.data)
-                    setStats(response.data)
-                })
-                .catch((error) => {
-                    let errorText = ""
-                    if (error.response && error.response.status === 401) {
-                        setErrorText(error.response.data.detail)
-                    } else if (error.request) {
-                        setErrorText("No response from server")
-                    } else {
-                        setErrorText("Unexpected error occured")
-                    }
-                })
-        } catch (error) {
-            setErrorText("Unexpected error occured")
-        }
+  useEffect(() => {
+    try {
+      GameService.getUserStats()
+        .then((response) => {
+          setStats(response);
+        })
+        .catch((error) => {
+          if (!error?.response && error?.request) {
+            setErrorText("No response from server");
+          } else if (error.response && error.response?.status === 403) {
+            AuthService.logout();
+            navigate("/login");
+          } else if (error.response && error.response?.status === 400) {
+            // technical database details exposed
+            setErrorText(error.response.data.detail);
+          } else {
+            setErrorText("Unexpected error occured");
+          }
+        });
+    } catch (error) {
+      setErrorText("Unexpected error occured");
     }
+  }, []);
 
-    const styleHeader = "bg-gradient-to-b from-slate-400 to-slate-500 text-white p-2 rounded-lg drop-shadow-xl shadow-slate-400 uppercase font-medium "
-    let statsList: JSX.Element[] = [];
+  const styleHeader =
+    "rounded-lg bg-gradient-to-b from-slate-400 to-slate-500 p-2 font-medium uppercase text-white text-lg shadow-slate-400 drop-shadow-xl ";
 
-    stats?.forEach(stat => {
-        statsList.push(
-            <div className="basis-1/3 grow bg-slate-200 rounded-lg shadow-lg shadow-slate-100 p-4 text-center flex flex-col gap-4">
-                <div className={styleHeader}>{stat.name}</div>
-                <div className="">
-                    <p className="">{stat.value}</p>
-                </div>
-            </div>
-        )
-    })
-
-    return (
-        <div className="w-full flex flex-col justify-center items-center gap-8 p-4 pt-8">
-            <div className=" w-full md:w-2/3 lg:w-3/5 text-center text-xl font-semibold p-4 shadow-inner shadow-amber-200 rounded-xl bg-amber-300">
-                My Statistics
-            </div>
-            <div className="flex flex-wrap flex-col md:flex-row gap-8 justify-between w-full md:w-2/3 lg:w-3/5">
-                {statsList}
-            </div>
+  let statsList: JSX.Element[] = [];
+  stats?.forEach((stat, idx) => {
+    statsList.push(
+      <div
+        className="flex grow basis-1/3 flex-col gap-4 rounded-lg bg-slate-200 p-4 text-center shadow-lg shadow-slate-100"
+        key={idx}
+      >
+        <div className={styleHeader}>{stat.result}</div>
+        <div className="">
+          <p className="text-2xl font-medium">{stat.count}</p>
         </div>
-    )
+      </div>
+    );
+  });
+
+  const errorPageProps = {
+    obj: "game statistics",
+    errorText: errorText,
+  };
+
+  return errorText ? (
+    <ErrorPage {...errorPageProps} />
+  ) : (
+    <div className="flex w-full flex-col items-center justify-center gap-8 p-4 pt-8">
+      <div className=" w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-200 p-4 text-center text-2xl font-semibold shadow-inner shadow-amber-200 md:w-2/3 lg:w-3/5">
+        My Statistics
+      </div>
+      <div className="flex w-full flex-col flex-wrap justify-between gap-8 md:w-2/3 md:flex-row lg:w-3/5">
+        {statsList}
+      </div>
+    </div>
+  );
 }
-export default UserProfile
+export default UserProfile;
+
+// check with 1, 2, 3, 4 tiles

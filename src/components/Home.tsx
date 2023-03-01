@@ -1,49 +1,48 @@
-import { Link } from "react-router-dom"
-import { useContext } from "react"
-import AuthContext from "../context/AuthProvider"
+import { Link } from "react-router-dom";
+import TokenService from "../services/tokenService";
+import AuthService from "../services/authService";
+import { IMAGE_LOC } from "../Constants";
 
 function Home() {
-    const { auth, setAuth } = useContext(AuthContext)
-    const buttonStyle = "w-full md:w-44 px-8 py-4 text-center text-xl font-semibold rounded-lg shadow-lg bg-amber-300 hover:bg-amber-400 transition duration-300"
+  const auth = TokenService.getAccessToken();
+  const buttonStyle =
+    "w-full rounded-lg bg-amber-300 px-8 py-4 text-center text-xl xl:text-2xl font-semibold shadow-lg transition duration-300 hover:bg-amber-400 md:w-44";
+  const handleLogout = () => {
+    AuthService.logout();
+  };
 
-    return (
-        <div className="bg-slate-400 min-h-screen flex flex-col-reverse md:flex-col justify-center ">
-            <div className="flex flex-col md:flex-row items-center justify-center md:justify-end gap-4 px-12 py-6 border-2 border-blue-500 ">
-                {auth
-                    ? <>
-                        <Link
-                            to="/menu"
-                            className={buttonStyle}>
-                            MENU
-                        </Link>
-                        <Link
-                            to="/login"
-                            className={buttonStyle}>
-                            <button onClick={e => setAuth("")}>LOGOUT</button>
-                        </Link>
-                    </>
-                    : <>
-                        <Link
-                            to="/login"
-                            className={buttonStyle}>
-                            LOGIN
-                        </Link>
-                        <Link
-                            to="/register"
-                            className={buttonStyle}>
-                            REGISTER
-                        </Link>
-                    </>}
-            </div>
-            <div className="flex-1 w-3/4 m-auto p-2 flex items-center justify-center border-2 border-red-500">
-                <img
-                    src="../../assets/images/chess_logo_black.png"
-                    alt="logo"
-                    className="object-contain w-full h-full"
-                />
-            </div>
-        </div>
-    )
+  return (
+    <div className="flex min-h-screen flex-col-reverse justify-center bg-slate-400 md:flex-col ">
+      <div className="flex flex-col items-center justify-center gap-4 px-12 py-6 pt-12 md:flex-row md:justify-end lg:gap-8">
+        {auth ? (
+          <>
+            <Link to="/menu" className={buttonStyle}>
+              MENU
+            </Link>
+            <Link to="/login" className={buttonStyle} onClick={handleLogout}>
+              <button>LOGOUT</button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className={buttonStyle}>
+              LOGIN
+            </Link>
+            <Link to="/register" className={buttonStyle}>
+              REGISTER
+            </Link>
+          </>
+        )}
+      </div>
+      <div className="m-auto flex w-3/4 flex-1 items-center justify-center p-2">
+        <img
+          src={`${IMAGE_LOC}chess_logo_black.png`}
+          alt="logo"
+          className="h-full w-full object-contain"
+        />
+      </div>
+    </div>
+  );
 }
 
-export default Home
+export default Home;

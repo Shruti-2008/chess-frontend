@@ -1,41 +1,39 @@
-import axios from "axios"
+import api from "./api";
+import TokenService from "./tokenService";
 
-const apiUrl = process.env.REACT_APP_API_URL
-const api = axios.create({
-    baseURL: apiUrl,
-    headers: {
-        "Content-Type": "application/json"
-    }
-});
+const login = async (email: string, password: string) => {
+  const bodyFormData = new FormData();
+  bodyFormData.append("username", email);
+  bodyFormData.append("password", password);
 
+  const response = await api.post("/login", bodyFormData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  TokenService.setUser({ ...response.data, username: email });
+  return response;
+};
 
-const login = (email: string, password: string) => {
-    const formData = new FormData()
-    formData.append("username", email)
-    formData.append("password", password)
-    api.post("/login", formData, { headers: { "Content-Type": "multipart/form-data" } })
-        .then(response => {
-            console.log(response.data.access_token)
-            return(response.data.access_token)
-        })
-        .catch((error) => console.log(error))
-    return ""
-}
-
-// const logout = () => {
-
-// }
+const logout = () => {
+  const token = TokenService.getRefreshToken();
+  if (token) {
+    api.post("/logout", { refresh_token: token });
+  }
+  TokenService.removeUser();
+};
 
 const signup = async (email: string, password: string) => {
-    return api.post("/users", {email, password})
-        .then(response => {
-            console.log(response.data.access_token)
-            return(response.data)
-        })
-        .catch((error) => {
-            console.log(error)
-            return(error)
-        })
-}
+  const response = await api.post("/users", { email, password });
+  TokenService.setUser({ ...response.data, username: email });
+  return response;
+};
 
-export { api, login, signup }
+const AuthService = {
+  api,
+  login,
+  signup,
+  logout,
+};
+
+export default AuthService;
+
+export { api };

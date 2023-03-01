@@ -1,85 +1,99 @@
-import React from "react";
-import { IMAGE_LOC, Color, PieceType } from "../Constants";
-import { Position } from "../models";
+import {
+  IMAGE_LOC,
+  Color,
+  PieceType,
+  HIGHLIGHT_TINT,
+  CHECKED_TINT,
+} from "../Constants";
+import { isEqual, getColor, getName } from "../utilities/pieceUtilities";
+import { TileProps } from "../utilities/commonInterfaces";
 
-interface Props {
-    piece: string
-    position: Position
-    backgroundColor: Color
-    valid: boolean;
-    highlight: boolean
-    checkedKing: Color|null
-    handleClick: (event: React.MouseEvent, piece: Position, valid: boolean) => void
-    flipBoard: boolean
-  }
+function Tile({
+  piece,
+  backgroundColor,
+  valid,
+  position,
+  handleClick,
+  highlight,
+  checkedKing,
+  flipBoard,
+}: TileProps) {
+  // pieceImage           : display image of the piece based on type and color of the piece, null if tile does not hold a piece
+  // validImage           : used to show the end position of all valid moves for the currently selected piece
+  //                        displays a filled green circle if the end position is empty, else shows a green circle
+  //                        outlining the opponent piece at the end pocition (to be captured)
+  // tileBackgroundImage  : if current piece is checked king, show a red background, else, show a white or black image as tile background
+  // highlightImage       : display a yellow tint over the last move and currently selected move start tile.
 
-function Tile({piece, backgroundColor, valid, position, handleClick, highlight, checkedKing, flipBoard} : Props) {
-    
-    // returns true if the piece = PieceType passed
-    function isEqual(piece: string, type: PieceType) {
-        return piece.toLowerCase() === type
-    }
+  const pieceImage =
+    piece !== PieceType.Empty
+      ? `url(${IMAGE_LOC}${getName(piece)}_${getColor(piece)}.png)`
+      : null;
+  const validImage = isEqual(piece, PieceType.Empty)
+    ? `url(${IMAGE_LOC}valid_pos.png)`
+    : `url(${IMAGE_LOC}valid_pos_capture.png`;
+  const validImage2 = isEqual(piece, PieceType.Empty)
+    ? "valid_pos"
+    : "valid_pos_capture";
+  const highlightImage = HIGHLIGHT_TINT;
+  const tileBackgroundImage =
+    checkedKing &&
+    isEqual(piece, PieceType.King) &&
+    getColor(piece) === checkedKing
+      ? CHECKED_TINT
+      : `url(${IMAGE_LOC}spot_${backgroundColor}.png)`;
 
-    // return color of piece
-    function getColor(symbol: string) {
-        return symbol.toLowerCase() === symbol ? Color.White : Color.Black
-    }
+  // rowLabel, colLabel : if set, indicates that the row and/or col label will be printed on the tile
+  const rowToRank = [1, 2, 3, 4, 5, 6, 7, 8];
+  const colToFile = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const firstLine = flipBoard ? 7 : 0;
+  const rowLabel = position.y === firstLine ? rowToRank[position.x] : undefined;
+  const colLabel = position.x === firstLine ? colToFile[position.y] : undefined;
+  const textColor =
+    backgroundColor === Color.White ? "text-slate-700" : "text-white";
 
-    // return name of PieceType
-    function getName(symbol: string){
-        switch(symbol.toLowerCase()){
-            case "p": return "pawn"
-            case "r": return "rook"
-            case "b": return "bishop"
-            case "n": return "knight"
-            case "q": return "queen"
-            case "k": return "king"
-        }
-    }
+  // img: Array to hold the piece image, highlight image & tile background image in that order. (piece image will be foremost and tile background the last)
+  // valid image is displayed on top of all other images.
+  let img: Array<string> = [];
+  pieceImage && img.push(pieceImage);
+  highlight && img.push(highlightImage);
+  img.push(tileBackgroundImage);
+  const bgImg: string = img.join(", ");
 
-    const validImage = isEqual(piece, PieceType.Empty) ? "valid_pos.png":"valid_pos_capture.png"
-    const tileBackgroundImage = checkedKing && isEqual(piece, PieceType.King) && getColor(piece) === checkedKing ? "linear-gradient(rgb(248, 113, 113, 1), rgb(248, 113, 113, 1))" : `url(${IMAGE_LOC}spot_${backgroundColor}.png)`
-    const rowToRank = [1, 2, 3, 4, 5, 6, 7, 8]
-    const colToFile = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    const firstLine = flipBoard ? 7 : 0
-    const rowCoordinate = position.y === firstLine? rowToRank[position.x] : undefined
-    const colCoordinate = position.x === firstLine? colToFile[position.y] : undefined
-    const textColor = backgroundColor === Color.White ? "text-slate-700" : "text-white" 
-    const highlightImage = "linear-gradient(rgb(253, 230, 148, 0.45), rgb(253, 230, 148, 0.45))"
-
-    let img : Array<string> = []
-
-    if (piece !== PieceType.Empty){
-        img.push(`url(${IMAGE_LOC}${getName(piece)}_${getColor(piece)}.png)`)
-    }
-    highlight && img.push(highlightImage)
-    img.push(tileBackgroundImage)
-    
-    const bgImg: string = img.join(", ")
-    
-    return(
-        <div  style={
-            {
-                backgroundImage: bgImg,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-                backgroundSize: "contain",
-            }}
-            className={`aspect-square flex justify-center items-center object-contain relative hover:cursor-pointer active:cursor-grabbing`}
-            onClick={(event) => {handleClick(event, position, valid)}}
+  return (
+    <div
+      style={{
+        backgroundImage: bgImg,
+      }}
+      className={`relative flex aspect-square items-center justify-center bg-contain bg-center bg-no-repeat object-contain hover:cursor-pointer`}
+      onClick={(event) => {
+        handleClick(event, position, valid);
+      }}
+    >
+      {valid && (
+        <div
+          className={`h-full w-full bg-contain bg-center bg-no-repeat opacity-70 `}
+          style={{
+            backgroundImage: validImage,
+          }}
+        ></div>
+      )}
+      {rowLabel && (
+        <p
+          className={`opaciy-80 absolute left-1 top-0.5 text-lg font-semibold ${textColor}`}
         >
-            {valid && <div className="w-full h-full opacity-70" style={
-                {
-                    backgroundImage:`url(${IMAGE_LOC}${validImage})`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center",
-                    backgroundSize: "contain",
-                }
-            }></div>}
-            {rowCoordinate && <p className={`text-lg font-semibold opaciy-80 absolute left-1 top-0.5 ${textColor}`}>{rowCoordinate}</p>}
-            {colCoordinate && <p className={`text-lg font-semibold opaciy-80 absolute right-1 bottom-0.5 ${textColor}`}>{colCoordinate}</p>}
-        </div>
-    )
+          {rowLabel}
+        </p>
+      )}
+      {colLabel && (
+        <p
+          className={`opaciy-80 absolute right-1 bottom-0.5 text-lg font-semibold ${textColor}`}
+        >
+          {colLabel}
+        </p>
+      )}
+    </div>
+  );
 }
 
-export default Tile
+export default Tile;
