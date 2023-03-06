@@ -57,6 +57,10 @@ module.exports = {
         enter: "enter 0.4s ease-out",
         leave: "leave 0.4s ease-in forwards",
       },
+      fontSize: {
+        "10xl": "10rem",
+        "12xl": "12rem",
+      },
     },
   },
   plugins: [],

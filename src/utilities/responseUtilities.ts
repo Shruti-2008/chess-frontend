@@ -1,16 +1,18 @@
 import {
+  BOARD_SIZE,
   CastleSide,
   Color,
   DrawStatus,
-  EndReason,
   PieceType,
   Winner,
 } from "../Constants";
 import { Position } from "../models";
-import Board from "../models/Board";
-import { CaptureResponse, MoveResponse } from "./commonInterfaces";
-import { isEqual } from "./pieceUtilities";
+import { BoardType, Captures, MoveResponse } from "./commonInterfaces";
+import { getOpponentColor, isEqual } from "./pieceUtilities";
 
+//#region -------- utilities for processing message recieved --------
+
+// return move history as a move-pair array
 function getMovesFromResponse(moveHistory: string[]) {
   const movesLength = moveHistory.length;
   let moves = [];
@@ -23,16 +25,22 @@ function getMovesFromResponse(moveHistory: string[]) {
   return moves;
 }
 
+// return board as a 2-dimensional 8x8 array. ex: [[r,n,b,q,k,b,n,r], [p,p,p,p,p,p,p,p], [-,-,-,-,-,-,-,-], ...]
+// black pieces (denoted using uppercase) : P, R, B, N, Q, K
+// white pieces (denoted using lowercase) : p, r, b, n, q, k
+// empty pieces (denoted using hyphen) : -
 function getBoardFromResponse(board: string) {
+  // create a board with all empty pieces
   let refreshedBoard: string[][] = [];
-  for (let i = 0; i < 8; i += 1) {
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
     let row = [];
-    for (let j = 0; j < 8; j += 1) {
+    for (let j = 0; j < BOARD_SIZE; j += 1) {
       row.push(PieceType.Empty);
     }
     refreshedBoard.push(row);
   }
 
+  // populate the board according to the response
   const rows = board.split("#");
   rows.forEach((row, rowIdx) => {
     var colIdx = 0;
@@ -45,61 +53,12 @@ function getBoardFromResponse(board: string) {
       }
     }
   });
+
   return refreshedBoard;
 }
 
-function isNumber(n: string) {
-  return !isNaN(parseFloat(n)) && !isNaN(+n - 0);
-}
-
-function getBoardAsString(board: string[][]) {
-  var res: string[] = [];
-  board.forEach((row) => {
-    var resRow: string[] = [];
-    var emptyCount = 0;
-    row.forEach((col) => {
-      if (isEqual(col, PieceType.Empty)) {
-        emptyCount += 1;
-      } else {
-        if (emptyCount !== 0) {
-          resRow.push(emptyCount.toString());
-          emptyCount = 0;
-        }
-        resRow.push(col);
-      }
-    });
-    if (emptyCount !== 0) {
-      resRow.push(emptyCount.toString());
-    }
-    res.push(resRow.join(""));
-  });
-  return res.join("#");
-}
-
-function getMoveHistory(moves: string[][]) {
-  var res: string[] = [];
-  moves.forEach((move) => {
-    res.push(...move);
-  });
-  return res;
-}
-
-function getCapturedObject(
-  capturedWhite: { type: PieceType; value: number }[],
-  capturedBlack: { type: PieceType; value: number }[]
-) {
-  let res: { [key: string]: number } = {};
-  capturedWhite.forEach((piece) => {
-    res[piece.type] = piece.value;
-  });
-  capturedBlack.forEach((piece) => {
-    res[piece.type.toUpperCase()] = piece.value;
-  });
-  return res;
-}
-
-const processResponse = (obj: MoveResponse) => {
-  console.log("data recieved is", obj);
+// return chessState
+function processResponse(obj: MoveResponse): BoardType {
   const isEligibleForCastle = [
     { color: Color.White, side: CastleSide.Queenside, value: false },
     { color: Color.White, side: CastleSide.Kingside, value: false },
@@ -107,8 +66,6 @@ const processResponse = (obj: MoveResponse) => {
     { color: Color.Black, side: CastleSide.Kingside, value: false },
   ];
 
-  // const whitePlayer = obj.white_player; //Check what happens when white_player is not sent
-  // const blackPlayer = obj.black_player;
   const _gameId = +obj.id;
   const _player = obj.player_color === Color.White ? Color.White : Color.Black;
   const _activePlayer =
@@ -160,7 +117,7 @@ const processResponse = (obj: MoveResponse) => {
       ? Color.White
       : obj.checked_king === Color.Black
       ? Color.Black
-      : null; // is this required???????????
+      : null;
   const _isConcluded = obj.is_concluded;
   const _winner =
     obj.winner === Winner.White
@@ -176,32 +133,137 @@ const processResponse = (obj: MoveResponse) => {
   });
   const _board = getBoardFromResponse(obj.board);
   const _draw = obj.draw;
-  const chessState = new Board(
-    // _whitePlayer,
-    // _blackPlayer,
-    _gameId,
-    false,
-    _player,
-    _activePlayer,
-    _board,
-    _whiteKingPos,
-    _blackKingPos,
-    _capturedWhite,
-    _capturedBlack,
-    _enPassantPawnPosition,
-    _lastMove,
-    _playedMoves,
-    _checkedKing,
-    _isConcluded,
-    _endReason,
-    _winner,
-    _draw,
-    _isEligibleForCastle
-  );
+
+  const chessState: BoardType = {
+    gameId: _gameId,
+    player: _player,
+    activePlayer: _activePlayer,
+    board: _board,
+    whiteKingPos: _whiteKingPos,
+    blackKingPos: _blackKingPos,
+    capturedWhite: _capturedWhite,
+    capturedBlack: _capturedBlack,
+    enPassantPawnPosition: _enPassantPawnPosition,
+    lastMove: _lastMove,
+    playedMoves: _playedMoves,
+    checkedKing: _checkedKing,
+    isConcluded: _isConcluded,
+    endReason: _endReason,
+    winner: _winner,
+    draw: _draw,
+    isEligibleForCastle: _isEligibleForCastle,
+  };
 
   return chessState;
-};
+}
 
+//#endregion
+
+//#region -------- utilities for constructing message to be sent --------
+
+// return board as a string. each row is seperated by a '#'. ex: rnbqkbnr#pp4p1#2p2p2#.....
+// black pieces (denoted using uppercase) : P, R, B, N, Q, K
+// white pieces (denoted using lowercase) : p, r, b, n, q, k
+// empty pieces (denoted by a number) : represents the number og consecutive empty pieces until the next occupied piece or row end
+function getBoardAsString(board: string[][]) {
+  var stringBoard: string[] = [];
+
+  board.forEach((row) => {
+    var stringBoardRow: string[] = [];
+    var emptyCount = 0;
+
+    row.forEach((col) => {
+      if (isEqual(col, PieceType.Empty)) {
+        emptyCount += 1;
+      } else {
+        if (emptyCount !== 0) {
+          stringBoardRow.push(emptyCount.toString());
+          emptyCount = 0;
+        }
+        stringBoardRow.push(col);
+      }
+    });
+
+    if (emptyCount !== 0) {
+      stringBoardRow.push(emptyCount.toString());
+    }
+
+    stringBoard.push(stringBoardRow.join(""));
+  });
+
+  return stringBoard.join("#");
+}
+
+// return move history as a flattened array ex: [e5, d2, a3, e8,......]
+function getMoveHistory(moves: string[][]) {
+  var moveOut: string[] = [];
+  moves.forEach((move) => {
+    moveOut.push(...move);
+  });
+  return moveOut;
+}
+
+// return CaptureResponse object
+function getCapturedObject(
+  capturedWhite: Captures[],
+  capturedBlack: Captures[]
+) {
+  let capturedPieces: { [key: string]: number } = {};
+  capturedWhite.forEach((piece) => {
+    capturedPieces[piece.type] = piece.value;
+  });
+  capturedBlack.forEach((piece) => {
+    capturedPieces[piece.type.toUpperCase()] = piece.value;
+  });
+  return capturedPieces;
+}
+
+function constructResponse(chessState: BoardType) {
+  return {
+    id: chessState!.gameId,
+    board: getBoardAsString(chessState!.board),
+    player_color: chessState!.player,
+    active_player: getOpponentColor(chessState!.player),
+    last_move_start:
+      chessState!.lastMove !== null
+        ? [
+            chessState!.lastMove!.startPosition.x,
+            chessState!.lastMove!.startPosition.y,
+          ]
+        : null,
+    last_move_end:
+      chessState!.lastMove !== null
+        ? [
+            chessState!.lastMove!.endPosition.x,
+            chessState!.lastMove!.endPosition.y,
+          ]
+        : null,
+    move_history: getMoveHistory(chessState!.playedMoves),
+    white_king_pos: [chessState!.whiteKingPos.x, chessState!.whiteKingPos.y],
+    black_king_pos: [chessState!.blackKingPos.x, chessState!.blackKingPos.y],
+    enpassant_position:
+      chessState!.enPassantPawnPosition &&
+      chessState.enPassantPawnPosition.length > 0
+        ? [
+            chessState.enPassantPawnPosition[0].x,
+            chessState.enPassantPawnPosition[0].y,
+          ]
+        : [],
+    castle_eligibility: chessState!.isEligibleForCastle.map((e) => e.value),
+    checked_king: chessState.checkedKing,
+    is_concluded: chessState!.winner ? true : false,
+    winner: chessState!.winner,
+    end_reason: chessState!.endReason,
+    draw: getDrawValue(chessState.draw, chessState.player),
+    Capture: getCapturedObject(
+      chessState!.capturedWhite,
+      chessState!.capturedBlack
+    ),
+  };
+}
+
+// return null if the draw status indicates that the draw has been offered/rejected by the opponent
+// because the opponent already knows what action he performed
 const getDrawValue = (draw: DrawStatus | null, player: Color) => {
   if (
     draw === null ||
@@ -215,6 +277,15 @@ const getDrawValue = (draw: DrawStatus | null, player: Color) => {
   }
   return draw;
 };
+
+//#endregion
+
+//#region -------- general functions --------
+
+// return true if string passed can be converted to a valid number
+function isNumber(n: string) {
+  return !isNaN(parseFloat(n)) && !isNaN(+n - 0);
+}
 
 const handleError = (error: any) => {
   let errorText = "";
@@ -233,14 +304,17 @@ const handleError = (error: any) => {
   return { errorText, logout };
 };
 
+//#endregion
+
 export {
   getMovesFromResponse,
-  isNumber,
+  getBoardFromResponse,
+  processResponse,
   getBoardAsString,
   getMoveHistory,
   getCapturedObject,
-  getBoardFromResponse,
-  processResponse,
-  handleError,
+  constructResponse,
   getDrawValue,
+  isNumber,
+  handleError,
 };

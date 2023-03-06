@@ -13,7 +13,7 @@ function Tile({
   backgroundColor,
   valid,
   position,
-  handleClick,
+  handleTileClick,
   highlight,
   checkedKing,
   flipBoard,
@@ -32,9 +32,6 @@ function Tile({
   const validImage = isEqual(piece, PieceType.Empty)
     ? `url(${IMAGE_LOC}valid_pos.png)`
     : `url(${IMAGE_LOC}valid_pos_capture.png`;
-  const validImage2 = isEqual(piece, PieceType.Empty)
-    ? "valid_pos"
-    : "valid_pos_capture";
   const highlightImage = HIGHLIGHT_TINT;
   const tileBackgroundImage =
     checkedKing &&
@@ -67,7 +64,7 @@ function Tile({
       }}
       className={`relative flex aspect-square items-center justify-center bg-contain bg-center bg-no-repeat object-contain hover:cursor-pointer`}
       onClick={(event) => {
-        handleClick(event, position, valid);
+        handleTileClick(event, position, valid);
       }}
     >
       {valid && (
@@ -80,14 +77,14 @@ function Tile({
       )}
       {rowLabel && (
         <p
-          className={`opaciy-80 absolute left-1 top-0.5 text-lg font-semibold ${textColor}`}
+          className={`opaciy-80 absolute left-1 top-0.5 text-lg font-semibold xl:text-xl ${textColor}`}
         >
           {rowLabel}
         </p>
       )}
       {colLabel && (
         <p
-          className={`opaciy-80 absolute right-1 bottom-0.5 text-lg font-semibold ${textColor}`}
+          className={`opaciy-80 absolute right-1 bottom-0.5 text-lg font-semibold xl:text-xl ${textColor}`}
         >
           {colLabel}
         </p>

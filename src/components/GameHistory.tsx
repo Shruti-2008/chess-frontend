@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 import ErrorPage from "./ErrorPage";
 import GameService from "../services/gameService";
 import { GameOverview } from "../utilities/commonInterfaces";
-import TokenService from "../services/tokenService";
 import AuthService from "../services/authService";
-import { Color, IMAGE_LOC } from "../Constants";
+import { IMAGE_LOC } from "../Constants";
 
 function GameHistory() {
   const navigate = useNavigate();
@@ -13,19 +12,17 @@ function GameHistory() {
   const [errorText, setErrorText] = useState("");
 
   const gridHeaderStyle =
-    "border-b-4 border-slate-400 border-collapse md:text-lg lg:text-xl font-bold bg-gradient-to-b from-amber-400 to-amber-200 p-2 text-center lg:p-6 md:p-4 flex items-center justify-center"; //border-collapse
+    "border-b-4 border-slate-400 border-collapse md:text-lg lg:text-xl xl:text-2xl font-bold bg-gradient-to-b from-amber-400 to-amber-200 p-2 text-center lg:p-6 md:p-4 flex items-center justify-center";
   const gridItemStyle =
-    "border-b-2 border-slate-400 border-collapse bg-slate-200 text-center p-2 group-hover:bg-gradient-to-b group-hover:from-amber-200 group-hover:to-amber-50 group-hover:border-y-4 group-hover:border-amber-200 transition duration-300 md:text-lg lg:text-xl lg:p-8 md:p-4";
+    "border-b-2 border-slate-400 border-collapse bg-slate-200 text-center p-2 group-hover:bg-gradient-to-b group-hover:from-amber-200 group-hover:to-amber-50 group-hover:border-y-4 group-hover:border-amber-200 transition duration-300 md:text-lg lg:text-xl xl:text-2xl lg:p-8 md:p-4";
 
   useEffect(() => {
-    // #int# comment below later
-
     try {
       GameService.getConcludedGames()
         .then((games) => setGameHistory(games))
         .catch((error) => {
           if (!error?.response && error.request) {
-            setErrorText("No response from server");
+            setErrorText("No response from server!");
           } else if (error.response && error.response.status === 403) {
             AuthService.logout();
             navigate("/login");
@@ -33,11 +30,11 @@ function GameHistory() {
             //technical database details exposed
             setErrorText(error.response.data.detail);
           } else {
-            setErrorText("Unexpected error occured");
+            setErrorText("Unexpected error occured!");
           }
         });
     } catch (error) {
-      setErrorText("Unexpected error occured");
+      setErrorText("Unexpected error occured!");
     }
   }, []);
 
@@ -52,20 +49,8 @@ function GameHistory() {
       <Link
         to={`/history/${game.id}`}
         className="group contents"
-        id={game.id.toString()}
+        key={game.id.toString()}
       >
-        {/* <div
-          className={`${gridItemStyle} flex items-center gap-4 rounded-l-lg group-hover:border-l-4`}
-        >
-          <img
-            src={`${IMAGE_LOC}spot_${
-              game.opponentColor === Color.White ? "w" : "b"
-            }.png`}
-            alt="opponent color"
-            className="h-6 w-6 border-2 border-amber-400"
-          />
-          <p>{game.opponent}</p>
-        </div> */}
         <div
           className={`${gridItemStyle} flex flex-col gap-2 rounded-l-lg group-hover:border-l-4`}
         >
@@ -117,3 +102,4 @@ function GameHistory() {
 export default GameHistory;
 
 // no of moves calculated as? check
+// pagination if list gets too long

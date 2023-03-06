@@ -18,7 +18,7 @@ const logout = () => {
   if (token) {
     api.post("/logout", { refresh_token: token });
   }
-  TokenService.removeUser();
+  //TokenService.removeUser();
 };
 
 const signup = async (email: string, password: string) => {
@@ -35,5 +35,3 @@ const AuthService = {
 };
 
 export default AuthService;
-
-export { api };

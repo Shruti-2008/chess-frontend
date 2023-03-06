@@ -1,23 +1,15 @@
-import { CastleSide, Color, EndReason, PieceType } from "../Constants";
+import {
+  CastleSide,
+  Color,
+  DrawStatus,
+  EndReason,
+  PieceType,
+  Winner,
+} from "../Constants";
 import { Position } from "../models";
 import { Move } from "../models/Move";
 
-interface Captures {
-  type: PieceType;
-  value: number;
-}
-
-interface CastleEligibility {
-  color: Color;
-  side: CastleSide;
-  value: boolean;
-}
-
-interface MovePosition {
-  startPosition: Position;
-  endPosition: Position;
-}
-
+// #region -------- response interfaces --------
 interface User {
   access_token: string;
   refresh_token: string;
@@ -56,8 +48,61 @@ interface MoveResponse {
   end_reason: string;
   draw: number | null;
   Capture: CaptureResponse;
-  // white_player: string | null;
-  // black_player: string | null;
+}
+
+interface GameOverviewIn {
+  id: number;
+  white_player: string;
+  black_player: string;
+  winner: number;
+  end_reason: number;
+  no_of_moves: number;
+  created_at: string;
+}
+
+interface GameDetailsIn {
+  board: string;
+  white_player: string;
+  black_player: string;
+  winner: number;
+  end_reason: number;
+  checked_king: string | null;
+  last_move_start: number[] | null;
+  last_move_end: number[] | null;
+  move_history: string[];
+  Capture: CaptureResponse;
+}
+//#endregion
+
+// #region -------- common interfaces --------
+
+interface UserStats {
+  result: string;
+  count: number;
+}
+
+interface OpponentUser {
+  id: number;
+  email: string;
+}
+//#endregion
+
+// #region -------- chessState interfaces -------
+
+interface Captures {
+  type: PieceType;
+  value: number;
+}
+
+interface CastleEligibility {
+  color: Color;
+  side: CastleSide;
+  value: boolean;
+}
+
+interface MovePosition {
+  startPosition: Position;
+  endPosition: Position;
 }
 
 interface GameOverview {
@@ -72,47 +117,11 @@ interface GameOverview {
   date: Date;
 }
 
-interface GameOverviewIn {
-  id: number;
-  white_player: string;
-  black_player: string;
-  winner: string;
-  end_reason: string;
-  no_of_moves: number;
-  created_at: string;
-}
-
-interface GameDetailsIn {
-  board: string;
-  white_player: string;
-  black_player: string;
-  winner: string;
-  end_reason: string;
-  checked_king: string | null;
-  last_move_start: number[] | null;
-  last_move_end: number[] | null;
-  move_history: string[];
-  Capture: {
-    p: number;
-    r: number;
-    n: number;
-    b: number;
-    q: number;
-    k: number;
-    P: number;
-    R: number;
-    N: number;
-    B: number;
-    Q: number;
-    K: number;
-  };
-}
-
 interface GameDetails {
   board: string[][];
   whitePlayer: string;
   blackPlayer: string;
-  winner: Color | null;
+  winner: number;
   result: string;
   endReason: string;
   checkedKing: Color | null;
@@ -123,16 +132,28 @@ interface GameDetails {
   flipBoard: boolean;
 }
 
-interface OpponentUser {
-  id: number;
-  email: string;
-  // created_at: string;
+interface BoardType {
+  gameId: number;
+  player: Color;
+  activePlayer: Color;
+  board: string[][];
+  capturedWhite: Captures[];
+  capturedBlack: Captures[];
+  whiteKingPos: Position;
+  blackKingPos: Position;
+  enPassantPawnPosition: Position[];
+  lastMove: MovePosition | null;
+  playedMoves: string[][];
+  checkedKing: Color | null;
+  isConcluded: boolean;
+  endReason: EndReason | null;
+  winner: Winner | null;
+  draw: DrawStatus | null;
+  isEligibleForCastle: CastleEligibility[];
 }
+//#endregion
 
-interface UserStats {
-  result: string;
-  count: number;
-}
+// #region -------- render interfaces --------
 
 interface ErrorPageProps {
   obj: string;
@@ -143,6 +164,7 @@ interface ActiveGameMoveProps {
   moves: string[][];
   handleResign: () => void;
   handleDrawRequest: () => void;
+  isConcluded: boolean;
 }
 
 interface ChessboardProps {
@@ -150,10 +172,10 @@ interface ChessboardProps {
   validMoves: Move[];
   lastMove: MovePosition | null;
   moveStartPosition: Position | null;
-  capturedBlack: { type: PieceType; value: number }[];
-  capturedWhite: { type: PieceType; value: number }[];
+  capturedBlack: Captures[];
+  capturedWhite: Captures[];
   checkedKing: Color | null;
-  handleClick: (
+  handleTileClick: (
     event: React.MouseEvent,
     piece: Position,
     valid: boolean
@@ -162,6 +184,7 @@ interface ChessboardProps {
   activePlayer: Color;
   whitePlayer: string;
   blackPlayer: string;
+  showNavigation: boolean;
 }
 
 interface TileProps {
@@ -171,7 +194,7 @@ interface TileProps {
   valid: boolean;
   highlight: boolean;
   checkedKing: Color | null;
-  handleClick: (
+  handleTileClick: (
     event: React.MouseEvent,
     piece: Position,
     valid: boolean
@@ -179,30 +202,60 @@ interface TileProps {
   flipBoard: boolean;
 }
 
+interface MoveListProps {
+  moves: string[][];
+  addEmptyRows: number;
+}
+
 interface UserCardProps {
   alignright: boolean;
-  captured: { type: PieceType; value: number }[];
+  captured: Captures[];
   color: Color;
   username: string;
   isActivePlayer: boolean;
 }
 
+interface EndGameProps {
+  winner: Winner;
+  reason: string;
+  player: Color;
+  whitePlayer: string;
+  blackPlayer: string;
+  toggleConclusionModal: () => void;
+}
+
+interface PromotionModalProps {
+  promotePawn: (type: PieceType) => void;
+  color: Color;
+}
+
+interface ModalProps {
+  message: string;
+  buttons: { label: string; handleButtonClick: () => void }[];
+}
+//#endregion
+
 export type {
+  User,
+  CaptureResponse,
+  MoveResponse,
+  GameOverviewIn,
+  GameDetailsIn,
+  UserStats,
+  OpponentUser,
   Captures,
   CastleEligibility,
-  MoveResponse,
   MovePosition,
-  User,
   GameOverview,
-  GameOverviewIn,
   GameDetails,
-  GameDetailsIn,
-  OpponentUser,
-  UserStats,
+  BoardType,
   ErrorPageProps,
   ActiveGameMoveProps,
   ChessboardProps,
   TileProps,
+  MoveListProps,
   UserCardProps,
-  CaptureResponse,
+  EndGameProps,
+  PromotionModalProps,
+  ModalProps,
 };

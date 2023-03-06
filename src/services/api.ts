@@ -1,4 +1,4 @@
-import axios, { AxiosHeaders } from "axios";
+import axios, { RawAxiosRequestHeaders } from "axios";
 import TokenService from "./tokenService";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -13,11 +13,15 @@ instance.interceptors.request.use(
   (config) => {
     const token = TokenService.getAccessToken();
     if (token) {
-      config.headers = { ...config.headers } as AxiosHeaders;
-      // config.headers.set("Authorization", `Bearer ${token}`)
-      instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      config.headers = { ...config.headers } as RawAxiosRequestHeaders; //AxiosHeaders;
+      config.headers["Authorization"] = `Bearer ${token}`;
+      //config.headers.set("Authorization", `Bearer ${token}`);
+      //instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } else {
-      instance.defaults.headers.common["Authorization"] = null;
+      //instance.defaults.headers.common["Authorization"] = null;
+    }
+    if (config.url === "/logout") {
+      TokenService.removeUser();
     }
     return config;
   },
@@ -47,7 +51,7 @@ instance.interceptors.response.use(
                 "Bearer " + payload.data.access_token;
               return instance(originalConfig);
             } else {
-              TokenService.removeUser(); //************ why this? */ otherwise can be caught by last reject.
+              TokenService.removeUser();
               return Promise.reject(error);
             }
           }

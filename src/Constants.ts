@@ -105,7 +105,7 @@ export const initialBoard = setInitialBoard();
 export enum EndReason {
   Checkmate = 1,
   StaleMate = 2,
-  Resign = 3,
+  Resignation = 3,
   Agreement = 4,
 }
 

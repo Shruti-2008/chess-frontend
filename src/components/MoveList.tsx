@@ -1,28 +1,43 @@
-interface MoveProps {
-  moves: string[][];
-  addEmptyRows: boolean;
-}
+import { MoveListProps } from "../utilities/commonInterfaces";
 
-const MoveList = ({ moves, addEmptyRows }: MoveProps) => {
+const MoveList = ({ moves, addEmptyRows }: MoveListProps) => {
   const gridTileStyle =
-    "bg-slate-200 text-center p-2 text-lg lg:text-xl border-b-2 border-slate-300";
+    "bg-slate-200 text-center p-2 text-base sm:text-lg lg:text-xl border-b-2 border-slate-300";
 
   let moveSet: JSX.Element[] = [];
   moves.forEach((move, i) => {
     moveSet.push(
-      <div className={`${gridTileStyle} rounded-l-lg`}>{i + 1}</div>,
-      <div className={gridTileStyle}>{move[0]}</div>,
-      <div className={`${gridTileStyle} rounded-r-lg`}>{move[1]}</div>
+      <div className={`${gridTileStyle} rounded-l-lg`} key={3 * i + 1}>
+        {i + 1}
+      </div>,
+      <div className={gridTileStyle} key={3 * i + 2}>
+        {move[0]}
+      </div>,
+      <div className={`${gridTileStyle} rounded-r-lg`} key={3 * i + 3}>
+        {move[1]}
+      </div>
     );
   });
 
   if (addEmptyRows) {
-    let rowsAdded = moveSet.length / 3;
-    while (rowsAdded < 20) {
+    let rowsAdded = Math.floor(moveSet.length / 3);
+    while (rowsAdded < addEmptyRows) {
       moveSet.push(
-        <div className={`${gridTileStyle} rounded-l-lg`}>{rowsAdded + 1}</div>,
-        <div className={gridTileStyle}>{}</div>,
-        <div className={`${gridTileStyle} rounded-r-lg`}>{}</div>
+        <div
+          className={`${gridTileStyle} rounded-l-lg`}
+          key={3 * rowsAdded + 1}
+        >
+          {rowsAdded + 1}
+        </div>,
+        <div className={gridTileStyle} key={3 * rowsAdded + 2}>
+          {}
+        </div>,
+        <div
+          className={`${gridTileStyle} rounded-r-lg`}
+          key={3 * rowsAdded + 3}
+        >
+          {}
+        </div>
       );
       rowsAdded += 1;
     }

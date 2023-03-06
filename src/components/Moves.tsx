@@ -7,10 +7,11 @@ const Moves = ({
   moves,
   handleResign,
   handleDrawRequest,
+  isConcluded,
 }: ActiveGameMoveProps) => {
   const moveRef = useRef<HTMLDivElement>(null);
   const buttonStyle =
-    "p-2 md:p-4 text-center font-semibold rounded-lg shadow-lg bg-gradient-to-t from-amber-400 to-amber-100 transition duration-300 flex flex-row items-center justify-center gap-2 text-lg grow hover:ring-4 hover:ring-amber-100 hover:ring-offset-2 hover:ring-offset-amber-100 h-8 w-8 box-content";
+    "p-2 md:p-4 text-center font-semibold rounded-lg shadow-lg bg-gradient-to-t from-amber-400 to-amber-100 transition duration-300 flex flex-row items-center justify-center gap-2 lg:gap-0.5 xl:gap-2 text-base md:text-lg xl:text-xl grow hover:ring-4 hover:ring-amber-100 hover:ring-offset-2 hover:ring-offset-amber-100 h-8 w-8 box-content";
   const gridHeaderStyle =
     "text-center text-lg lg:text-xl bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
 
@@ -22,13 +23,18 @@ const Moves = ({
 
   const moveProps = {
     moves,
-    addEmptyRows: true,
+    addEmptyRows: 20,
   };
 
   return (
-    <div className="mx-auto flex w-full flex-col items-center gap-8 px-2 py-8 md:w-1/3 lg:w-1/4">
-      <div className="flex w-full flex-row gap-4 px-2">
-        <button className={buttonStyle} onClick={handleDrawRequest}>
+    <div className="flex w-full flex-col gap-4 p-4 md:gap-8 lg:flex-col">
+      {/**mx-auto flex w-full flex-col items-center gap-8 px-2 py-8 md:w-1/3 lg:w-1/4 */}
+      <div className="flex w-full flex-row gap-4 lg:gap-8">
+        <button
+          className={buttonStyle}
+          onClick={handleDrawRequest}
+          disabled={isConcluded}
+        >
           <img
             src={`${IMAGE_LOC}draw.png`}
             alt="draw"
@@ -36,7 +42,11 @@ const Moves = ({
           />
           <p>DRAW</p>
         </button>
-        <button className={buttonStyle} onClick={handleResign}>
+        <button
+          className={buttonStyle}
+          onClick={handleResign}
+          disabled={isConcluded}
+        >
           <img
             src={`${IMAGE_LOC}resign.png`}
             alt="resign"

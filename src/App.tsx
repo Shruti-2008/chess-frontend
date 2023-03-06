@@ -6,10 +6,11 @@ import Register from "./components/Register";
 import Home from "./components/Home";
 import Menu from "./components/Menu";
 import GameHistory from "./components/GameHistory";
-import GameMoves from "./components/GameMoves";
 import UserProfile from "./components/UserProfile";
 import { AuthProvider } from "./context/AuthProvider";
 import Protected from "./components/Protected";
+import GameDetail from "./components/GameDetail";
+import PageNotFound from "./components/PageNotFound";
 function App() {
   return (
     <>
@@ -24,9 +25,10 @@ function App() {
                 <Route path="menu" element={<Menu />} />
                 <Route path="profile" element={<UserProfile />} />
                 <Route path="history" element={<GameHistory />} />
-                <Route path="history/:id" element={<GameMoves />} />
+                <Route path="history/:id" element={<GameDetail />} />
+                <Route path="game/:id" element={<Referee />} />
               </Route>
-              <Route path="game/:id" element={<Referee />} />
+              <Route path="*" element={<PageNotFound />} />
             </Route>
           </Routes>
         </Router>

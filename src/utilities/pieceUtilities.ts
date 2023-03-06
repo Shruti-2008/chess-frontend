@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import { PieceType, Color } from "../Constants";
 
 // return color of piece

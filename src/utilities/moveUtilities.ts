@@ -1,10 +1,10 @@
 import { BOARD_SIZE, CastleSide, Color, PieceType } from "../Constants";
 import { Position } from "../models";
-import Board from "../models/Board";
 import { Move } from "../models/Move";
+import { BoardType } from "./commonInterfaces";
 import { getColor, getOpponentColor, isEqual } from "./pieceUtilities";
 
-function findMoves(_chessState: Board) {
+function findMoves(_chessState: BoardType) {
   let _moves: Move[] = [];
   const kingColor = _chessState.player;
   const kingPosition =
@@ -48,8 +48,8 @@ function findMoves(_chessState: Board) {
       // filter the moves to keep just the moves whose destination is a valid square OR the valid king moves
       _moves = _moves.filter(
         (move) =>
-          validTiles.some((tile) => tile.isSamePosition(move.endPos)) ||
-          move.startPos.isSamePosition(kingPosition) // shouldn't we check if king is also moving into a checked position?
+          validTiles.some((tile) => tile.isSamePosition(move.endPosition)) ||
+          move.startPosition.isSamePosition(kingPosition) // we already check if king is moving into checked position while calculating king moves
       );
     } else {
       // double-check so king has to move
@@ -66,16 +66,16 @@ function findMoves(_chessState: Board) {
 
 // find moves for pieces from the opponent team
 function getAllMoves(
-  _chessState: Board,
+  _chessState: BoardType,
   _moves: Move[],
-  pins: { position: Position; direction: Position }[]
+  _pins: { position: Position; direction: Position }[]
 ) {
   const color = _chessState.player;
   for (let row = 0; row < BOARD_SIZE; row += 1) {
     for (let col = 0; col < BOARD_SIZE; col += 1) {
       const piece = _chessState.board[row][col];
       if (piece !== "-" && getColor(piece) === color) {
-        getMoves(_chessState, piece, new Position(row, col), _moves, pins);
+        getMoves(_chessState, piece, new Position(row, col), _moves, _pins);
       }
     }
   }
@@ -83,7 +83,7 @@ function getAllMoves(
 
 // find moves for a piece based on piece type
 function getMoves(
-  _chessState: Board,
+  _chessState: BoardType,
   piece: string,
   position: Position,
   moves: Move[],
@@ -160,7 +160,7 @@ function getPieceMoves(
   const isPinned = pin ? true : false;
 
   directions.forEach((move_direction, idx) => {
-    // if the current piece is not pinned or if it is pinned, the direction of piece movement still keeps it pinned
+    // if the current piece is not pinned or if it is pinned, the direction of piece movement still keeps it pinned i.e. protects king from checking piece.
     if (
       !isPinned ||
       (pin!.direction.x === move_direction[0] &&
@@ -178,13 +178,19 @@ function getPieceMoves(
           // blank tile
           if (isEqual(destPiece, PieceType.Empty)) {
             possibleMoves.push(
-              new Move({ startPos: srcPosition, endPos: destPosition })
+              new Move({
+                startPosition: srcPosition,
+                endPosition: destPosition,
+              })
             );
           }
           // tile occupied by opponent piece
           else if (getColor(destPiece) === opponentColor) {
             possibleMoves.push(
-              new Move({ startPos: srcPosition, endPos: destPosition })
+              new Move({
+                startPosition: srcPosition,
+                endPosition: destPosition,
+              })
             );
             break;
           }
@@ -208,7 +214,7 @@ function getPieceMoves(
 
 // get possible castle moves for given king
 function getCastleMoves(
-  _chessState: Board,
+  _chessState: BoardType,
   kingPosition: Position,
   side: CastleSide,
   possibleCastleMoves: Move[]
@@ -229,12 +235,11 @@ function getCastleMoves(
       ) {
         possibleCastleMoves.push(
           new Move({
-            startPos: kingPosition,
-            endPos: new Position(
+            startPosition: kingPosition,
+            endPosition: new Position(
               kingPosition.x,
               kingPosition.y + 2 * direction
             ),
-            isCastleMove: true,
           })
         );
       }
@@ -265,7 +270,7 @@ function isCastlePathClear(
 // find moves for pawns
 // Pawn moves: 1 step forward move, 2 step forward move, diagonal capture move, diagonal enpassant capture move
 function getPawnMoves(
-  _chessState: Board,
+  _chessState: BoardType,
   piece: string,
   srcPosition: Position,
   moves: Move[],
@@ -296,7 +301,9 @@ function getPawnMoves(
       (pin!.direction.x === rowDirection && pin!.direction.y === 0) ||
       (-pin!.direction.x === rowDirection && pin!.direction.y === 0)
     ) {
-      moves.push(new Move({ startPos: srcPosition, endPos: forwardPosition }));
+      moves.push(
+        new Move({ startPosition: srcPosition, endPosition: forwardPosition })
+      );
       if (srcPosition.x === specialRow) {
         // move pawn 2 steps ahead
         const doubleForwardPosition = new Position(
@@ -307,7 +314,10 @@ function getPawnMoves(
           _chessState.board[doubleForwardPosition.x][doubleForwardPosition.y];
         if (isEqual(doubleForwardPiece, PieceType.Empty)) {
           moves.push(
-            new Move({ startPos: srcPosition, endPos: doubleForwardPosition })
+            new Move({
+              startPosition: srcPosition,
+              endPosition: doubleForwardPosition,
+            })
           );
         }
       }
@@ -342,9 +352,8 @@ function getPawnMoves(
         ) {
           moves.push(
             new Move({
-              startPos: srcPosition,
-              endPos: diagonalPosition,
-              isEnPassantCaptureMove: true,
+              startPosition: srcPosition,
+              endPosition: diagonalPosition,
             })
           );
         }
@@ -355,8 +364,8 @@ function getPawnMoves(
         ) {
           moves.push(
             new Move({
-              startPos: srcPosition,
-              endPos: diagonalPosition,
+              startPosition: srcPosition,
+              endPosition: diagonalPosition,
             })
           );
         }
@@ -368,7 +377,7 @@ function getPawnMoves(
 // find moves for king while ensuring that the move is safe i.e. it does not place the king in check
 // King moves: 1 step in each direction, castle moves
 function getKingMoves(
-  _chessState: Board,
+  _chessState: BoardType,
   srcPosition: Position,
   moves: Move[]
 ) {
@@ -404,8 +413,8 @@ function getKingMoves(
         if (!_isChecked) {
           moves.push(
             new Move({
-              startPos: srcPosition,
-              endPos: destPos,
+              startPosition: srcPosition,
+              endPosition: destPos,
             })
           );
         }
@@ -434,7 +443,7 @@ function getKingMoves(
     const { _isChecked } = getPinsandCheckingPieces(
       _chessState.board,
       pieceColor,
-      move.endPos
+      move.endPosition
     );
     if (!_isChecked) {
       moves.push(move);
@@ -515,11 +524,13 @@ function getPinsandCheckingPieces(
                 break;
               }
             } else {
+              // opponent piece does not give check, so no need to explore this direction more
               break;
             }
           }
         }
       } else {
+        // out of range
         break;
       }
     }
@@ -556,10 +567,11 @@ function getPinsandCheckingPieces(
   return { _isChecked, _checkingPieces, _pins };
 }
 
-function isOpponentKingUnderCheck(_chessState: Board) {
+// returns whether the opponent king is under check
+function isOpponentKingUnderCheck(_chessState: BoardType) {
   const opponentKingColor = getOpponentColor(_chessState.player);
   const opponentKingPosition =
-    opponentKingColor == Color.White
+    opponentKingColor === Color.White
       ? _chessState.whiteKingPos
       : _chessState.blackKingPos;
   const { _isChecked } = getPinsandCheckingPieces(

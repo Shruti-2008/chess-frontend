@@ -7,10 +7,10 @@ import AuthService from "../services/authService";
 
 function UserProfile() {
   const [stats, setStats] = useState<UserStats[]>([
-    { result: "played", count: 0 },
+    { result: "total", count: 0 },
     { result: "won", count: 0 },
     { result: "lost", count: 0 },
-    { result: "tie", count: 0 },
+    { result: "draw", count: 0 },
   ]);
   const [errorText, setErrorText] = useState("");
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ function UserProfile() {
         })
         .catch((error) => {
           if (!error?.response && error?.request) {
-            setErrorText("No response from server");
+            setErrorText("No response from server!");
           } else if (error.response && error.response?.status === 403) {
             AuthService.logout();
             navigate("/login");
@@ -31,11 +31,11 @@ function UserProfile() {
             // technical database details exposed
             setErrorText(error.response.data.detail);
           } else {
-            setErrorText("Unexpected error occured");
+            setErrorText("Unexpected error occured!");
           }
         });
     } catch (error) {
-      setErrorText("Unexpected error occured");
+      setErrorText("Unexpected error occured!");
     }
   }, []);
 
@@ -76,5 +76,3 @@ function UserProfile() {
   );
 }
 export default UserProfile;
-
-// check with 1, 2, 3, 4 tiles

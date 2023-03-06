@@ -4,6 +4,7 @@ import GameService from "../services/gameService";
 import { OpponentUser, MoveResponse } from "../utilities/commonInterfaces";
 import { IMAGE_LOC } from "../Constants";
 import AuthService from "../services/authService";
+import { toast, Toaster } from "react-hot-toast";
 
 function Menu() {
   const buttonStyle =
@@ -25,8 +26,69 @@ function Menu() {
       GameService.getActiveGame()
         .then((response) => {
           setOngoingGame(response.data);
-          console.log("Active Game is", response.data);
           setErrorText("");
+        })
+        .catch((error) => {
+          if (!error?.response && error?.request) {
+            setErrorText("No response from server!");
+          } else if (error.response && error.response.status === 403) {
+            AuthService.logout();
+            navigate("/login");
+          } else if (error.response && error.response.status === 400) {
+            //technical database details exposed
+            setErrorText(error.response.data.detail);
+          } else {
+            setErrorText("Unexpected error occured!");
+          }
+        });
+    } catch (error) {
+      setErrorText("Unexpected error occured!");
+    }
+  }, []);
+
+  const handleStartButtonClick = async () => {
+    try {
+      GameService.getActiveGame()
+        .then((response) => {
+          setOngoingGame(response.data);
+          const game = response.data;
+          setErrorText("");
+          if (game !== null) {
+            toast(`You already have an active game!`);
+          } else {
+            showModal();
+          }
+        })
+        .catch((error) => {
+          if (!error?.response && error?.request) {
+            setErrorText("No response from server!");
+          } else if (error.response && error.response.status === 403) {
+            AuthService.logout();
+            navigate("/login");
+          } else if (error.response && error.response.status === 400) {
+            //technical database details exposed
+            setErrorText(error.response.data.detail);
+          } else {
+            setErrorText("Unexpected error occured!");
+          }
+        });
+    } catch (error) {
+      setErrorText("Unexpected error occured!");
+    }
+  };
+
+  const handleOngoingButtonClick = () => {
+    try {
+      GameService.getActiveGame()
+        .then((response) => {
+          setOngoingGame(response.data);
+          const game = response.data;
+          setErrorText("");
+          if (game !== null) {
+            navigate(`/game/${game.id}`, { state: { ...game } });
+          } else {
+            toast(`You do not have any active games.`);
+          }
         })
         .catch((error) => {
           if (!error?.response && error?.request) {
@@ -44,7 +106,7 @@ function Menu() {
     } catch (error) {
       setErrorText("Unexpected error occured");
     }
-  }, []);
+  };
 
   function showModal() {
     try {
@@ -56,7 +118,7 @@ function Menu() {
         })
         .catch((error) => {
           if (!error?.response && error?.request) {
-            setErrorText("No response from server");
+            setErrorText("No response from server!");
           } else if (error.response && error.response?.status === 403) {
             AuthService.logout();
             navigate("/login");
@@ -64,11 +126,11 @@ function Menu() {
             // technical database details exposed
             setErrorText(error.response.data.detail);
           } else {
-            setErrorText("Unexpected error occured");
+            setErrorText("Unexpected error occured!");
           }
         });
     } catch (error) {
-      setErrorText("Unexpected error occured");
+      setErrorText("Unexpected error occured!");
     }
     modalRef.current!.classList.toggle("hidden");
   }
@@ -88,6 +150,7 @@ function Menu() {
 
     return (
       <button
+        key={user.id}
         id={user.email}
         value={user.id}
         onClick={(e) => handleClick(e)}
@@ -155,27 +218,25 @@ function Menu() {
 
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-16 px-4 py-8 font-semibold md:w-3/5 md:text-xl lg:w-3/5 xl:w-1/3">
-      <div
-        className={`${buttonStyle} ${
-          ongoingGame === null && !errorText ? "" : "hidden"
-        } `}
-        onClick={showModal}
-      >
-        Start Game
-      </div>
+      <Toaster />
       {errorText && (
         <div className="mb-4 rounded-lg border-2 border-red-500 bg-red-100 p-2 text-center font-semibold text-red-500 shadow-md">
-          Could not verify active game. {errorText}!
+          Could not verify active game. {errorText}
         </div>
       )}
 
-      <Link
-        to={`/game/${ongoingGame?.id}`}
-        state={ongoingGame}
-        className={ongoingGame === null ? "hidden" : ""}
+      <div
+        className={`${buttonStyle} ${ongoingGame === null ? "" : "hidden"}`}
+        onClick={handleStartButtonClick}
       >
-        <div className={buttonStyle}>Ongoing Game</div>
-      </Link>
+        Start Game
+      </div>
+      <div
+        className={`${buttonStyle} ${ongoingGame === null ? "hidden" : ""}`}
+        onClick={handleOngoingButtonClick}
+      >
+        Ongoing Game
+      </div>
 
       <Link to="/history">
         <div className={buttonStyle}>Game History</div>
@@ -248,6 +309,3 @@ function Menu() {
 }
 
 export default Menu;
-
-// add username to users fetched
-// seperate config for active game request why?

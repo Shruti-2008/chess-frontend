@@ -4,111 +4,97 @@ import { isEqual } from "../utilities/pieceUtilities";
 import { Position } from "./Position";
 
 interface MoveParams {
-  startPos: Position;
-  endPos: Position;
-  isEnPassantCaptureMove?: boolean;
-  isCastleMove?: boolean;
-  // isPawnPromotion: boolean
+  startPosition: Position;
+  endPosition: Position;
 }
 
 interface NotationParams {
   srcPiece: string;
   destPiece: string;
+  isCheck?: boolean;
+  isCastleMove?: boolean;
+  isEnPassantCaptureMove?: boolean;
   isPawnPromotionMove?: boolean;
   promotionType?: PieceType;
 }
 
 export class Move {
-  startPos: Position;
-  endPos: Position;
-  isEnPassantCaptureMove: boolean;
-  isCastleMove: boolean;
-  // isPawnPromotion: boolean
+  startPosition: Position;
+  endPosition: Position;
 
-  constructor({
-    startPos,
-    endPos,
-    isEnPassantCaptureMove = false,
-    isCastleMove = false,
-  }: MoveParams) {
-    this.startPos = startPos;
-    this.endPos = endPos;
-    this.isEnPassantCaptureMove = isEnPassantCaptureMove;
-    this.isCastleMove = isCastleMove;
-    // this.isPawnPromotion = isPawnPromotion
+  constructor({ startPosition, endPosition }: MoveParams) {
+    this.startPosition = startPosition;
+    this.endPosition = endPosition;
   }
 
-  // isEqual(move: Move) {
-  //   return (
-  //     this.startPos.isSamePosition(move.startPos) &&
-  //     this.endPos.isSamePosition(move.endPos)
-  //   );
-  // }
-
-  isEqual(move: MovePosition) {
+  isSameMove(move: MovePosition) {
     return (
-      this.startPos.isSamePosition(move.startPosition) &&
-      this.endPos.isSamePosition(move.endPosition)
+      this.startPosition.isSamePosition(move.startPosition) &&
+      this.endPosition.isSamePosition(move.endPosition)
     );
   }
 
   getNotation({
     srcPiece,
     destPiece,
+    isCheck = false,
+    isCastleMove = false,
+    isEnPassantCaptureMove = false,
     isPawnPromotionMove = false,
     promotionType = PieceType.Empty,
   }: NotationParams) {
     const rowToRank = [1, 2, 3, 4, 5, 6, 7, 8];
     const colToFile = ["a", "b", "c", "d", "e", "f", "g", "h"];
-    const typeToAbbr = [
-      { type: PieceType.King, abbr: "K" },
-      { type: PieceType.Queen, abbr: "Q" },
-      { type: PieceType.Rook, abbr: "R" },
-      { type: PieceType.Bishop, abbr: "B" },
-      { type: PieceType.Knight, abbr: "N" },
-    ];
 
-    function isEqual2(piece: string, type: PieceType) {
-      console.log(piece, type);
-      return piece.toLowerCase() === type;
-    }
-
-    // const srcPiece = _board[this.startPos.x][this.startPos.y]
-    // const destPiece = _board[this.endPos.x][this.endPos.y]
     let notation = [];
 
-    if (this.isCastleMove) {
-      //need to change logic here?????
-      return Math.abs(this.startPos.y - this.endPos.y) === 2 ? "0-0" : "0-0-0";
+    // castle notation: 0-0 for kingside castle, 0-0-0 for queenside castle
+    if (isCastleMove) {
+      return Math.abs(this.startPosition.y - this.endPosition.y) === 2
+        ? "0-0"
+        : "0-0-0";
     }
 
     // remove the condition and just keep body for full notation
+    // push the source piece making the move if it is not a pawn
     if (!isEqual(srcPiece, PieceType.Pawn)) {
       notation.push(
-        typeToAbbr.find((obj) => isEqual2(srcPiece, obj.type))!.abbr
+        srcPiece.toUpperCase()
+        // can push image instead
       );
     }
 
-    if (destPiece !== PieceType.Empty) {
+    // if the move captures a piece, push 'x'
+    if (destPiece !== PieceType.Empty || isEnPassantCaptureMove) {
+      // if the source piece is pawn, push its source position file first
       if (isEqual(srcPiece, PieceType.Pawn)) {
-        notation.push(colToFile[this.endPos.y]);
+        notation.push(colToFile[this.startPosition.y]);
       }
       //captured so append x
       notation.push("x");
     }
 
-    notation.push(colToFile[this.endPos.y]);
-    notation.push(rowToRank[this.endPos.x]);
+    // push the destination posiiton file and rank
+    notation.push(colToFile[this.endPosition.y]);
+    notation.push(rowToRank[this.endPosition.x]);
 
-    if (this.isEnPassantCaptureMove) {
+    // push 'e.p.' in case of enpassant captures
+    if (isEnPassantCaptureMove) {
       notation.push(" e.p.");
     }
 
+    // push the type promoted to in case of pawn promotion
     if (isPawnPromotionMove) {
       //(this.isPawnPromotion){
       notation.push(
-        typeToAbbr.find((obj) => isEqual(promotionType, obj.type))!.abbr
+        promotionType.toUpperCase()
+        // can push image instead
       );
+    }
+
+    // push '+' in case of a check
+    if (isCheck) {
+      notation.push("+");
     }
 
     return notation.join("");

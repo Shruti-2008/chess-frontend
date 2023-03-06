@@ -2,7 +2,8 @@ import { BOARD_SIZE, Color } from "../Constants";
 import { Position } from "../models";
 import Tile from "./Tile";
 import UserCard from "./UserCard";
-import { ChessboardProps } from "../utilities/commonInterfaces";
+import { ChessboardProps, TileProps } from "../utilities/commonInterfaces";
+import Navigation from "./Navigation";
 
 function Chessboard({
   board,
@@ -12,14 +13,16 @@ function Chessboard({
   capturedBlack,
   capturedWhite,
   checkedKing,
-  handleClick,
+  handleTileClick,
   flipBoard,
   activePlayer,
   whitePlayer,
   blackPlayer,
+  showNavigation,
 }: ChessboardProps) {
   let tiles: JSX.Element[] = [];
 
+  // if flipBoard is true, display black at the bottom and white at the top instead of the opposite
   if (flipBoard) {
     for (let row = 0; row <= BOARD_SIZE - 1; row += 1) {
       for (let col = BOARD_SIZE - 1; col >= 0; col -= 1) {
@@ -39,7 +42,7 @@ function Chessboard({
     const position = new Position(row, col);
     const backgroundColor = (row + col) % 2 === 0 ? Color.Black : Color.White;
     const valid = validMoves.some((move) =>
-      move.endPos.isSamePosition(new Position(row, col))
+      move.endPosition.isSamePosition(new Position(row, col))
     );
     const highlight =
       (lastMove !== null &&
@@ -47,14 +50,14 @@ function Chessboard({
           position.isSamePosition(lastMove.endPosition))) ||
       (moveStartPosition !== null &&
         position.isSamePosition(moveStartPosition));
-    const tileProps = {
+    const tileProps: TileProps = {
       piece,
       position,
       backgroundColor,
       valid,
       highlight,
       checkedKing,
-      handleClick,
+      handleTileClick,
       flipBoard,
     };
     return <Tile key={`${row}${col}`} {...tileProps} />;
@@ -62,36 +65,44 @@ function Chessboard({
 
   const userCardBlack = (
     <UserCard
-      key="top"
+      key="black"
       alignright={flipBoard ? true : false}
       captured={capturedWhite}
       color={Color.White}
-      isActivePlayer={activePlayer == Color.Black}
+      isActivePlayer={activePlayer === Color.Black}
       username={blackPlayer}
     />
   );
 
   const userCardWhite = (
     <UserCard
-      key="bottom"
+      key="white"
       alignright={flipBoard ? false : true}
       captured={capturedBlack}
       color={Color.Black}
-      isActivePlayer={activePlayer == Color.White}
+      isActivePlayer={activePlayer === Color.White}
       username={whitePlayer}
     />
   );
 
+  const navigationStyle = showNavigation
+    ? "md:justify-between"
+    : "md:justify-end";
   return (
-    <div className="w-full border-2 border-amber-300 p-4">
-      {" "}
-      {/*  md:w-2/3 lg:w-3/4 */}
-      <div className="box-border flex h-full w-full flex-col gap-4">
-        {flipBoard ? userCardWhite : userCardBlack}
-        <div className="m-auto box-border grid aspect-square w-full max-w-screen-md grow grid-cols-8 border-8 border-slate-500">
+    <div className="w-full p-4">
+      <div className="box-border flex h-full w-full flex-col gap-4 md:gap-6 lg:gap-8">
+        <div className="flex h-full w-full justify-start">
+          {flipBoard ? userCardWhite : userCardBlack}
+        </div>
+        <div className="m-auto box-border grid aspect-square w-full max-w-4xl grow grid-cols-8 border-8 border-slate-500">
           {tiles}
         </div>
-        {flipBoard ? userCardBlack : userCardWhite}
+        <div
+          className={`flex h-full w-full ${navigationStyle} flex-col-reverse items-center gap-4 md:flex-row md:items-start`}
+        >
+          {showNavigation && <Navigation />}
+          {flipBoard ? userCardBlack : userCardWhite}
+        </div>
       </div>
     </div>
   );

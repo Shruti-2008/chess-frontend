@@ -14,7 +14,7 @@ function Navbar() {
   const collapsibleMenuStyle =
     "block cursor-pointer border-y-2 border-slate-400 bg-slate-200 p-2 transition duration-300 hover:bg-amber-300 active:bg-amber-200";
 
-  const showHideMenu = () => {
+  const toggleCollapsibleMenu = () => {
     collapsibleMenu.current?.classList.toggle("hidden");
   };
 
@@ -27,8 +27,8 @@ function Navbar() {
   };
 
   return (
-    <div className="m-0 min-h-screen border-2 border-teal-300 bg-slate-400">
-      <div className="flex w-full flex-col border-2 border-blue-400">
+    <div className="m-0 min-h-screen bg-gradient-to-b from-slate-400 to-slate-300">
+      <div className="flex w-full flex-col">
         <div className="flex h-20 w-full items-center justify-center md:h-32">
           <button
             className="group absolute left-4 flex h-10 transition duration-300 hover:h-12 md:h-16 hover:md:h-20 xl:left-8"
@@ -62,15 +62,12 @@ function Navbar() {
               <Link to="/login" className={buttonStyle} onClick={handleLogout}>
                 <button>LOGOUT</button>
               </Link>
-              {/* <button onClick={handleLogout} className={buttonStyle}>
-                LOGOUT
-              </button> */}
             </div>
           )}
           {auth && (
             <button
               className="group absolute right-4 flex transition duration-300 md:hidden"
-              onClick={showHideMenu}
+              onClick={toggleCollapsibleMenu}
             >
               <img
                 src={`${IMAGE_LOC}menu.png`}
@@ -89,7 +86,7 @@ function Navbar() {
           <Link
             to="/menu"
             className={collapsibleMenuStyle}
-            onClick={showHideMenu}
+            onClick={toggleCollapsibleMenu}
           >
             MENU
           </Link>
@@ -97,7 +94,7 @@ function Navbar() {
             to="/login"
             className={collapsibleMenuStyle}
             onClick={() => {
-              showHideMenu();
+              toggleCollapsibleMenu();
               handleLogout();
             }}
           >
@@ -115,4 +112,3 @@ function Navbar() {
 export default Navbar;
 
 // remove borders
-// auth

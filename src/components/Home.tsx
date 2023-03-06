@@ -6,14 +6,15 @@ import { IMAGE_LOC } from "../Constants";
 function Home() {
   const auth = TokenService.getAccessToken();
   const buttonStyle =
-    "w-full rounded-lg bg-amber-300 px-8 py-4 text-center text-xl xl:text-2xl font-semibold shadow-lg transition duration-300 hover:bg-amber-400 md:w-44";
+    "w-full rounded-lg from-amber-400 to-amber-200 bg-gradient-to-t px-8 py-4 text-center text-xl xl:text-2xl font-semibold shadow-lg transition duration-300 hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 md:w-44";
+
   const handleLogout = () => {
     AuthService.logout();
   };
 
   return (
-    <div className="flex min-h-screen flex-col-reverse justify-center bg-slate-400 md:flex-col ">
-      <div className="flex flex-col items-center justify-center gap-4 px-12 py-6 pt-12 md:flex-row md:justify-end lg:gap-8">
+    <div className="flex min-h-screen flex-col-reverse justify-center gap-4 bg-slate-400 py-12 md:flex-col">
+      <div className="flex flex-col items-center justify-center gap-4 px-12 md:flex-row md:justify-end lg:gap-8 lg:px-32 xl:px-44">
         {auth ? (
           <>
             <Link to="/menu" className={buttonStyle}>
@@ -34,7 +35,7 @@ function Home() {
           </>
         )}
       </div>
-      <div className="m-auto flex w-3/4 flex-1 items-center justify-center p-2">
+      <div className="m-auto flex w-10/12 flex-1 items-center justify-center md:w-3/4">
         <img
           src={`${IMAGE_LOC}chess_logo_black.png`}
           alt="logo"
