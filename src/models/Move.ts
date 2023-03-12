@@ -50,9 +50,11 @@ export class Move {
 
     // castle notation: 0-0 for kingside castle, 0-0-0 for queenside castle
     if (isCastleMove) {
-      return Math.abs(this.startPosition.y - this.endPosition.y) === 2
+      return this.endPosition.y === 2
+        ? "0-0-0"
+        : this.endPosition.y === 6
         ? "0-0"
-        : "0-0-0";
+        : "";
     }
 
     // remove the condition and just keep body for full notation

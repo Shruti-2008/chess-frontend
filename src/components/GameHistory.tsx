@@ -86,14 +86,20 @@ function GameHistory() {
   ) : (
     <div className="m-auto flex h-full flex-col gap-8 p-4 pt-8">
       <div className="m-auto flex w-full justify-center">
-        <div className="grid grid-cols-[max-content_max-content_max-content_max-content_max-content] overflow-x-auto ">
-          <div className={`${gridHeaderStyle} rounded-l-lg`}>Players</div>
-          <div className={gridHeaderStyle}>Result</div>
-          <div className={gridHeaderStyle}>End Reason</div>
-          <div className={gridHeaderStyle}>Date</div>
-          <div className={`${gridHeaderStyle} rounded-r-lg`}>Moves</div>
-          {gridTiles}
-        </div>
+        {gameHistory && gameHistory.length > 0 ? (
+          <div className="grid grid-cols-[max-content_max-content_max-content_max-content_max-content] overflow-x-auto ">
+            <div className={`${gridHeaderStyle} rounded-l-lg`}>Players</div>
+            <div className={gridHeaderStyle}>Result</div>
+            <div className={gridHeaderStyle}>End Reason</div>
+            <div className={gridHeaderStyle}>Date</div>
+            <div className={`${gridHeaderStyle} rounded-r-lg`}>Moves</div>
+            {gridTiles}
+          </div>
+        ) : (
+          <div className="rounded-xl bg-gradient-to-b from-amber-200 to-amber-400 p-4 text-center text-lg font-semibold shadow-xl sm:text-xl lg:p-8 lg:text-2xl">
+            You do not have any concluded games
+          </div>
+        )}
       </div>
     </div>
   );
@@ -101,5 +107,4 @@ function GameHistory() {
 
 export default GameHistory;
 
-// no of moves calculated as? check
-// pagination if list gets too long
+// to do:  pagination if list gets too long

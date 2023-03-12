@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import GameService from "../services/gameService";
@@ -10,19 +10,34 @@ import {
 import AuthService from "../services/authService";
 import MoveList from "./MoveList";
 import Chessboard from "./Chessboard";
-import { Color } from "../Constants";
+import { Color, EndReason } from "../Constants";
+import { getInitialChessState } from "../utilities/generalUtilities";
+import useChessState from "../hooks/useChessState";
+import { getOpponentColor } from "../utilities/pieceUtilities";
+import { getMoveParameters } from "../utilities/responseUtilities";
 
 function GameDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [game, setGame] = useState<GameDetails>();
   const [errorText, setErrorText] = useState("");
-  const navigate = useNavigate();
+  const [flipBoard, setFlipBoard] = useState(false);
+  const { chessState, setChessState, getMoves, makeMove, clearMoves } =
+    useChessState(Number(id), getInitialChessState(Number(id)));
+
+  const playOn = useRef(false);
+  const counter = useRef(0);
 
   useEffect(() => {
     try {
       GameService.getGameDetails(Number(id))
         .then((game) => {
           setGame(game);
+          if (game) {
+            setFlipBoard(game.flipBoard);
+            setChessState(game.chessState);
+          }
         })
         .catch((error) => {
           if (!error?.response && error?.request) {
@@ -33,7 +48,17 @@ function GameDetail() {
           } else if (error.response && error.response.status === 400) {
             // technical database details exposed
             setErrorText(error.response.data.detail);
-          } else if (error.request) {
+          } else if (error.response) {
+            const detail = error.response?.data?.detail;
+            if (
+              Array.isArray(detail) &&
+              detail.length > 0 &&
+              detail[0].msg !== undefined
+            ) {
+              setErrorText(error.response?.data.detail[0].msg);
+            } else {
+              setErrorText(detail);
+            }
           } else {
             setErrorText("Unexpected error occured!");
           }
@@ -43,6 +68,13 @@ function GameDetail() {
     }
   }, []);
 
+  useEffect(() => {
+    if (playOn.current) {
+      const player = counter.current % 2 === 0 ? Color.White : Color.Black;
+      getMoves(player);
+    }
+  }, [chessState]);
+
   const statHeaderStyle =
     "bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 rounded-lg drop-shadow-xl shadow-slate-400";
   const statTileStyle =
@@ -50,31 +82,70 @@ function GameDetail() {
   const gridHeaderStyle =
     "text-center text-lg lg:text-xl bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
 
+  function handleFirstButtonClick() {
+    const state = getInitialChessState(Number(id));
+    setChessState(state);
+    counter.current = 0;
+    playOn.current = true;
+  }
+
+  function handleNextButtonClick() {
+    const player = counter.current % 2 === 0 ? Color.White : Color.Black;
+    if (
+      playOn.current &&
+      game &&
+      game.chessState.steps &&
+      counter.current < game.chessState.steps.length
+    ) {
+      const notation =
+        game?.chessState.playedMoves[Math.floor(counter.current / 2)][
+          counter.current % 2
+        ];
+      const move = game.chessState.steps[counter.current]!;
+      const moveParameters = getMoveParameters(move, notation!);
+      makeMove(
+        moveParameters.moveStartPosition,
+        moveParameters.moveEndPosition,
+        player,
+        moveParameters.promotionType
+      );
+      getMoves(getOpponentColor(player));
+      counter.current += 1;
+      if (counter.current === game.chessState.steps.length) {
+        playOn.current = false;
+      }
+    }
+  }
+
+  function handleLastButtonClick() {
+    counter.current = 0;
+    setChessState(game!.chessState);
+    clearMoves();
+    playOn.current = false;
+  }
+
   if (game) {
     const moveProps: MoveListProps = {
-      moves: game.moves,
+      moves: game.chessState.playedMoves,
       addEmptyRows: 15,
     };
 
     const boardProps: ChessboardProps = {
-      board: game.board,
+      board: chessState.board,
       validMoves: [],
-      lastMove: game.lastMove,
+      lastMove: chessState.lastMove,
       moveStartPosition: null,
-      capturedBlack: game.capturedBlack,
-      capturedWhite: game.capturedWhite,
-      checkedKing: game.checkedKing,
+      capturedBlack: chessState.capturedBlack,
+      capturedWhite: chessState.capturedWhite,
+      checkedKing: chessState.checkedKing,
       handleTileClick: () => {},
-      flipBoard: game.flipBoard,
-      activePlayer:
-        game.moves &&
-        game.moves.length !== 0 &&
-        game.moves[game.moves.length - 1].length === 1
-          ? Color.Black
-          : Color.White, //might change depending on last entry in moves array
+      flipBoard: flipBoard,
       whitePlayer: game.whitePlayer,
       blackPlayer: game.blackPlayer,
       showNavigation: true,
+      handleFirstButtonClick,
+      handleNextButtonClick,
+      handleLastButtonClick,
     };
 
     return (
@@ -89,7 +160,11 @@ function GameDetail() {
               </div>
               <div className={statTileStyle}>
                 <div className={statHeaderStyle}>End Reason</div>
-                <div>{game.endReason}</div>
+                <div>
+                  {game.chessState.endReason
+                    ? EndReason[+game.chessState.endReason]
+                    : ""}
+                </div>
               </div>
             </div>
             <div className="mx-auto flex w-full grow flex-col rounded-lg ">

@@ -5,6 +5,8 @@ import { OpponentUser, MoveResponse } from "../utilities/commonInterfaces";
 import { IMAGE_LOC } from "../Constants";
 import AuthService from "../services/authService";
 import { toast, Toaster } from "react-hot-toast";
+import { MdOutlineClose } from "react-icons/md";
+import { ImNotification } from "react-icons/im";
 
 function Menu() {
   const buttonStyle =
@@ -54,7 +56,7 @@ function Menu() {
           const game = response.data;
           setErrorText("");
           if (game !== null) {
-            toast(`You already have an active game!`);
+            makeToast("Ongoing game", "You already have an active game!");
           } else {
             showModal();
           }
@@ -87,7 +89,7 @@ function Menu() {
           if (game !== null) {
             navigate(`/game/${game.id}`, { state: { ...game } });
           } else {
-            toast(`You do not have any active games.`);
+            makeToast("Game ended", "You do not have any active games.");
           }
         })
         .catch((error) => {
@@ -215,6 +217,38 @@ function Menu() {
       setErrorText("Unexpected error occured. Could not start game.");
     }
   };
+
+  // make toast notification
+  function makeToast(title: string, message: string) {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } relative flex w-full max-w-md translate-y-0 flex-row items-center justify-center rounded-xl bg-gradient-to-b from-amber-400 to-amber-100 px-4 py-6 text-gray-900 shadow-2xl hover:translate-y-1 hover:shadow-none`}
+        >
+          <div className="text-3xl md:text-5xl">
+            <ImNotification />
+          </div>
+          <div className="ml-4 flex cursor-default flex-col items-start justify-center sm:ml-6">
+            <h1 className="text-base font-semibold leading-none tracking-wider text-gray-900 sm:text-lg md:text-xl">
+              {title}
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed tracking-wider text-gray-600 sm:text-base md:text-lg">
+              {message}
+            </p>
+          </div>
+          <div
+            className="absolute top-2 right-2 cursor-pointer text-lg"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            <MdOutlineClose />
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
+  }
 
   return (
     <div className="mx-auto flex h-full w-full flex-col gap-16 px-4 py-8 font-semibold md:w-3/5 md:text-xl lg:w-3/5 xl:w-1/3">

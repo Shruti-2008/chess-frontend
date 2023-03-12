@@ -60,7 +60,7 @@ function Register() {
   }
 
   return (
-    <div className="m-auto h-full w-full bg-slate-400 p-6 text-lg">
+    <div className="m-auto h-full w-full p-6 text-lg">
       <form
         onSubmit={(e) => handleSubmit(e)}
         className="m-auto box-border w-full rounded-xl bg-slate-200 px-2 py-6 text-lg shadow-2xl md:w-4/5 md:py-12 lg:w-2/3 xl:w-1/2"

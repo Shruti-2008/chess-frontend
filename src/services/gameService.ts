@@ -1,5 +1,4 @@
-import { Color, EndReason, PieceType, Winner } from "../Constants";
-import { Position } from "../models/Position";
+import { Color, EndReason, Winner } from "../Constants";
 import {
   GameDetails,
   GameDetailsIn,
@@ -7,10 +6,7 @@ import {
   GameOverviewIn,
   UserStats,
 } from "../utilities/commonInterfaces";
-import {
-  getBoardFromResponse,
-  getMovesFromResponse,
-} from "../utilities/responseUtilities";
+import { processResponse } from "../utilities/responseUtilities";
 import api from "./api";
 import TokenService from "./tokenService";
 
@@ -52,16 +48,21 @@ const getGameDetails = async (id: number) => {
   const response = await api.get(`/games/${id}`);
   const data: GameDetailsIn = response.data;
   const game: GameDetails = {
-    board: getBoardFromResponse(data.board),
+    chessState: processResponse(response.data),
     whitePlayer: data.white_player,
     blackPlayer: data.black_player,
-    winner:
-      data.winner === Winner.White
-        ? Winner.White
-        : data.winner === Winner.Black
-        ? Winner.Black
-        : Winner.Draw,
-    endReason: EndReason[+data.end_reason],
+    player:
+      data.player_color === Color.White
+        ? Color.White
+        : data.player_color === Color.Black
+        ? Color.Black
+        : Color.None,
+    activePlayer:
+      data.active_player === Color.White
+        ? Color.White
+        : data.active_player === Color.Black
+        ? Color.Black
+        : Color.None,
     result:
       data.winner === Winner.White
         ? "1-0"
@@ -70,41 +71,6 @@ const getGameDetails = async (id: number) => {
         : data.winner === Winner.Draw
         ? "1/2-1/2"
         : "",
-    checkedKing: data.checked_king
-      ? data.checked_king === Color.White
-        ? Color.White
-        : Color.Black
-      : null,
-    lastMove:
-      data.last_move_start && data.last_move_end
-        ? {
-            startPosition: new Position(
-              data.last_move_start[0],
-              data.last_move_start[1]
-            ),
-            endPosition: new Position(
-              data.last_move_end[0],
-              data.last_move_end[1]
-            ),
-          }
-        : null,
-    moves: getMovesFromResponse(data.move_history),
-    capturedWhite: [
-      { type: PieceType.Pawn, value: data.Capture.p },
-      { type: PieceType.Rook, value: data.Capture.r },
-      { type: PieceType.Knight, value: data.Capture.n },
-      { type: PieceType.Bishop, value: data.Capture.b },
-      { type: PieceType.Queen, value: data.Capture.q },
-      { type: PieceType.King, value: data.Capture.k },
-    ],
-    capturedBlack: [
-      { type: PieceType.Pawn, value: data.Capture.P },
-      { type: PieceType.Rook, value: data.Capture.R },
-      { type: PieceType.Knight, value: data.Capture.N },
-      { type: PieceType.Bishop, value: data.Capture.B },
-      { type: PieceType.Queen, value: data.Capture.Q },
-      { type: PieceType.King, value: data.Capture.K },
-    ],
     flipBoard: TokenService.getUser().username === data.black_player,
   };
   return game;
@@ -112,9 +78,6 @@ const getGameDetails = async (id: number) => {
 
 // return details of active game of current user
 const getActiveGame = async () => {
-  // const config = {
-  //   headers: { Authorization: `Bearer ${TokenService.getAccessToken()}` },
-  // };
   const response = await api.get("/games/active");
   return response;
 };

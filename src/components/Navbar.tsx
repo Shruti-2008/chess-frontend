@@ -110,5 +110,3 @@ function Navbar() {
 }
 
 export default Navbar;
-
-// remove borders

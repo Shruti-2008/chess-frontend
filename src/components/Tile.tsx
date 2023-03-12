@@ -77,14 +77,14 @@ function Tile({
       )}
       {rowLabel && (
         <p
-          className={`opaciy-80 absolute left-1 top-0.5 text-lg font-semibold xl:text-xl ${textColor}`}
+          className={`opaciy-80 absolute left-1 top-0.5 font-semibold sm:text-lg xl:text-xl ${textColor}`}
         >
           {rowLabel}
         </p>
       )}
       {colLabel && (
         <p
-          className={`opaciy-80 absolute right-1 bottom-0.5 text-lg font-semibold xl:text-xl ${textColor}`}
+          className={`opaciy-80 absolute right-1 bottom-0.5 font-semibold sm:text-lg xl:text-xl ${textColor}`}
         >
           {colLabel}
         </p>

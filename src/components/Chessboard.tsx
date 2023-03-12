@@ -15,10 +15,12 @@ function Chessboard({
   checkedKing,
   handleTileClick,
   flipBoard,
-  activePlayer,
   whitePlayer,
   blackPlayer,
   showNavigation,
+  handleFirstButtonClick,
+  handleNextButtonClick,
+  handleLastButtonClick,
 }: ChessboardProps) {
   let tiles: JSX.Element[] = [];
 
@@ -69,7 +71,7 @@ function Chessboard({
       alignright={flipBoard ? true : false}
       captured={capturedWhite}
       color={Color.White}
-      isActivePlayer={activePlayer === Color.Black}
+      isActivePlayer={true} //{activePlayer === Color.Black}
       username={blackPlayer}
     />
   );
@@ -80,10 +82,16 @@ function Chessboard({
       alignright={flipBoard ? false : true}
       captured={capturedBlack}
       color={Color.Black}
-      isActivePlayer={activePlayer === Color.White}
+      isActivePlayer={true} // {activePlayer === Color.White}
       username={whitePlayer}
     />
   );
+
+  const navigationProps = {
+    handleFirstButtonClick,
+    handleNextButtonClick,
+    handleLastButtonClick,
+  };
 
   const navigationStyle = showNavigation
     ? "md:justify-between"
@@ -100,7 +108,7 @@ function Chessboard({
         <div
           className={`flex h-full w-full ${navigationStyle} flex-col-reverse items-center gap-4 md:flex-row md:items-start`}
         >
-          {showNavigation && <Navigation />}
+          {showNavigation && <Navigation {...navigationProps} />}
           {flipBoard ? userCardBlack : userCardWhite}
         </div>
       </div>

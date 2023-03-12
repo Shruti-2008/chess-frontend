@@ -7,8 +7,13 @@ import {
   Winner,
 } from "../Constants";
 import { Position } from "../models";
-import { BoardType, Captures, MoveResponse } from "./commonInterfaces";
-import { getOpponentColor, isEqual } from "./pieceUtilities";
+import {
+  BoardType,
+  CaptureResponse,
+  Captures,
+  MoveResponse,
+} from "./commonInterfaces";
+import { getOpponentColor, getPieceType, isEqual } from "./pieceUtilities";
 
 //#region -------- utilities for processing message recieved --------
 
@@ -57,6 +62,30 @@ function getBoardFromResponse(board: string) {
   return refreshedBoard;
 }
 
+// get captured white
+function getCapturedWhite(capture: CaptureResponse) {
+  return [
+    { type: PieceType.Pawn, value: capture.p },
+    { type: PieceType.Rook, value: capture.r },
+    { type: PieceType.Knight, value: capture.n },
+    { type: PieceType.Bishop, value: capture.b },
+    { type: PieceType.Queen, value: capture.q },
+    { type: PieceType.King, value: capture.k },
+  ];
+}
+
+// get captured white
+function getCapturedBlack(capture: CaptureResponse) {
+  return [
+    { type: PieceType.Pawn, value: capture.P },
+    { type: PieceType.Rook, value: capture.R },
+    { type: PieceType.Knight, value: capture.N },
+    { type: PieceType.Bishop, value: capture.B },
+    { type: PieceType.Queen, value: capture.Q },
+    { type: PieceType.King, value: capture.K },
+  ];
+}
+
 // return chessState
 function processResponse(obj: MoveResponse): BoardType {
   const isEligibleForCastle = [
@@ -67,9 +96,6 @@ function processResponse(obj: MoveResponse): BoardType {
   ];
 
   const _gameId = +obj.id;
-  const _player = obj.player_color === Color.White ? Color.White : Color.Black;
-  const _activePlayer =
-    obj.active_player === Color.White ? Color.White : Color.Black;
   const _whiteKingPos = new Position(
     obj.white_king_pos[0],
     obj.white_king_pos[1]
@@ -78,27 +104,14 @@ function processResponse(obj: MoveResponse): BoardType {
     obj.black_king_pos[0],
     obj.black_king_pos[1]
   );
-  const _capturedWhite = [
-    { type: PieceType.Pawn, value: obj.Capture.p },
-    { type: PieceType.Rook, value: obj.Capture.r },
-    { type: PieceType.Knight, value: obj.Capture.n },
-    { type: PieceType.Bishop, value: obj.Capture.b },
-    { type: PieceType.Queen, value: obj.Capture.q },
-    { type: PieceType.King, value: obj.Capture.k },
-  ];
-  const _capturedBlack = [
-    { type: PieceType.Pawn, value: obj.Capture.P },
-    { type: PieceType.Rook, value: obj.Capture.R },
-    { type: PieceType.Knight, value: obj.Capture.N },
-    { type: PieceType.Bishop, value: obj.Capture.B },
-    { type: PieceType.Queen, value: obj.Capture.Q },
-    { type: PieceType.King, value: obj.Capture.K },
-  ];
+  const _capturedWhite = getCapturedWhite(obj.Capture);
+  const _capturedBlack = getCapturedBlack(obj.Capture);
   const _enPassantPawnPosition =
     obj.enpassant_position && obj.enpassant_position.length > 0
       ? [new Position(obj.enpassant_position[0], obj.enpassant_position[1])]
       : [];
   const _playedMoves = getMovesFromResponse(obj.move_history);
+  const _steps = obj.steps;
   const _lastMove =
     obj.last_move_start &&
     obj.last_move_start.length > 0 &&
@@ -136,8 +149,6 @@ function processResponse(obj: MoveResponse): BoardType {
 
   const chessState: BoardType = {
     gameId: _gameId,
-    player: _player,
-    activePlayer: _activePlayer,
     board: _board,
     whiteKingPos: _whiteKingPos,
     blackKingPos: _blackKingPos,
@@ -146,6 +157,7 @@ function processResponse(obj: MoveResponse): BoardType {
     enPassantPawnPosition: _enPassantPawnPosition,
     lastMove: _lastMove,
     playedMoves: _playedMoves,
+    steps: _steps,
     checkedKing: _checkedKing,
     isConcluded: _isConcluded,
     endReason: _endReason,
@@ -156,6 +168,40 @@ function processResponse(obj: MoveResponse): BoardType {
 
   return chessState;
 }
+
+// return tile number based on the tile name/notation ex. a -> 0, ? -> 63
+const getNumberFromString = (char: string): number => {
+  if (isNaN(Number(char))) {
+    const asciiValue = char.charCodeAt(0);
+    return asciiValue >= 97 && asciiValue <= 122
+      ? asciiValue - 97
+      : asciiValue >= 65 && asciiValue <= 90
+      ? asciiValue - 39 // - 65 + 26 = -39
+      : asciiValue === 33 // ascii value 33 = !
+      ? 62
+      : asciiValue; // ascii value 63 = ?
+  } else {
+    return 52 + Number(char);
+  }
+};
+
+// return position based on tile number
+const getPositionFromNumber = (num: number) => {
+  return new Position(Math.floor(num / 8), num % 8);
+};
+
+// return move parameters based on step and move notation
+const getMoveParameters = (move: string, notation: string) => {
+  const moveStartPosition = getPositionFromNumber(getNumberFromString(move[0]));
+  const moveEndPosition = getPositionFromNumber(getNumberFromString(move[1]));
+  const lastChar = notation[notation.length - 1];
+  const promotionType = getPieceType(lastChar);
+  return {
+    moveStartPosition,
+    moveEndPosition,
+    promotionType,
+  };
+};
 
 //#endregion
 
@@ -218,12 +264,12 @@ function getCapturedObject(
   return capturedPieces;
 }
 
-function constructResponse(chessState: BoardType) {
+function constructResponse(chessState: BoardType, player: Color) {
   return {
     id: chessState!.gameId,
     board: getBoardAsString(chessState!.board),
-    player_color: chessState!.player,
-    active_player: getOpponentColor(chessState!.player),
+    player_color: player,
+    active_player: getOpponentColor(player),
     last_move_start:
       chessState!.lastMove !== null
         ? [
@@ -239,6 +285,7 @@ function constructResponse(chessState: BoardType) {
           ]
         : null,
     move_history: getMoveHistory(chessState!.playedMoves),
+    steps: chessState!.steps,
     white_king_pos: [chessState!.whiteKingPos.x, chessState!.whiteKingPos.y],
     black_king_pos: [chessState!.blackKingPos.x, chessState!.blackKingPos.y],
     enpassant_position:
@@ -254,7 +301,7 @@ function constructResponse(chessState: BoardType) {
     is_concluded: chessState!.winner ? true : false,
     winner: chessState!.winner,
     end_reason: chessState!.endReason,
-    draw: getDrawValue(chessState.draw, chessState.player),
+    draw: getDrawValue(chessState.draw, player),
     Capture: getCapturedObject(
       chessState!.capturedWhite,
       chessState!.capturedBlack
@@ -277,6 +324,21 @@ const getDrawValue = (draw: DrawStatus | null, player: Color) => {
   }
   return draw;
 };
+
+function getStepNotationFromPosition(pos: Position) {
+  const num = pos.x * 8 + pos.y;
+  return num <= 25
+    ? String.fromCharCode(num + 97)
+    : num <= 51
+    ? String.fromCharCode(num + 65 - 26)
+    : num <= 61
+    ? (num - 52).toString()
+    : num === 62
+    ? "!"
+    : num === 63
+    ? "?"
+    : "";
+}
 
 //#endregion
 
@@ -309,12 +371,16 @@ const handleError = (error: any) => {
 export {
   getMovesFromResponse,
   getBoardFromResponse,
+  getCapturedWhite,
+  getCapturedBlack,
   processResponse,
+  getMoveParameters,
   getBoardAsString,
   getMoveHistory,
   getCapturedObject,
   constructResponse,
   getDrawValue,
+  getStepNotationFromPosition,
   isNumber,
   handleError,
 };

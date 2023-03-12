@@ -4,9 +4,9 @@ import { Move } from "../models/Move";
 import { BoardType } from "./commonInterfaces";
 import { getColor, getOpponentColor, isEqual } from "./pieceUtilities";
 
-function findMoves(_chessState: BoardType) {
+function findMoves(_chessState: BoardType, player: Color) {
   let _moves: Move[] = [];
-  const kingColor = _chessState.player;
+  const kingColor = player;
   const kingPosition =
     kingColor === Color.White
       ? _chessState.whiteKingPos
@@ -44,7 +44,7 @@ function findMoves(_chessState: BoardType) {
       }
 
       // get all moves as usual
-      getAllMoves(_chessState, _moves, _pins);
+      getAllMoves(_chessState, _moves, _pins, player);
       // filter the moves to keep just the moves whose destination is a valid square OR the valid king moves
       _moves = _moves.filter(
         (move) =>
@@ -55,11 +55,11 @@ function findMoves(_chessState: BoardType) {
       // double-check so king has to move
       // call function to get just king moves
       // const directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]]
-      getKingMoves(_chessState, kingPosition, _moves);
+      getKingMoves(_chessState, kingPosition, _moves, player);
     }
   } else {
     //get all moves as usual
-    getAllMoves(_chessState, _moves, _pins);
+    getAllMoves(_chessState, _moves, _pins, player);
   }
   return { _isChecked, _moves };
 }
@@ -68,14 +68,22 @@ function findMoves(_chessState: BoardType) {
 function getAllMoves(
   _chessState: BoardType,
   _moves: Move[],
-  _pins: { position: Position; direction: Position }[]
+  _pins: { position: Position; direction: Position }[],
+  player: Color
 ) {
-  const color = _chessState.player;
+  const color = player;
   for (let row = 0; row < BOARD_SIZE; row += 1) {
     for (let col = 0; col < BOARD_SIZE; col += 1) {
       const piece = _chessState.board[row][col];
       if (piece !== "-" && getColor(piece) === color) {
-        getMoves(_chessState, piece, new Position(row, col), _moves, _pins);
+        getMoves(
+          _chessState,
+          piece,
+          new Position(row, col),
+          _moves,
+          _pins,
+          player
+        );
       }
     }
   }
@@ -87,7 +95,8 @@ function getMoves(
   piece: string,
   position: Position,
   moves: Move[],
-  pins: { position: Position; direction: Position }[]
+  pins: { position: Position; direction: Position }[],
+  player: Color
 ) {
   let directions: Array<Array<number>> = [];
   switch (piece.toLowerCase()) {
@@ -135,7 +144,7 @@ function getMoves(
       ];
       break;
     case PieceType.King:
-      getKingMoves(_chessState, position, moves);
+      getKingMoves(_chessState, position, moves, player);
       return;
     case PieceType.Empty:
     default:
@@ -217,9 +226,10 @@ function getCastleMoves(
   _chessState: BoardType,
   kingPosition: Position,
   side: CastleSide,
-  possibleCastleMoves: Move[]
+  possibleCastleMoves: Move[],
+  player: Color
 ) {
-  const kingColor = _chessState.player;
+  const kingColor = player;
   _chessState.isEligibleForCastle.forEach((obj) => {
     if (obj.color === kingColor && obj.side === side && obj.value) {
       // eligible for castle
@@ -379,9 +389,10 @@ function getPawnMoves(
 function getKingMoves(
   _chessState: BoardType,
   srcPosition: Position,
-  moves: Move[]
+  moves: Move[],
+  player: Color
 ) {
-  const pieceColor = _chessState.player;
+  const pieceColor = player;
   const directions = [
     [-1, 0],
     [-1, 1],
@@ -428,14 +439,16 @@ function getKingMoves(
     _chessState,
     srcPosition,
     CastleSide.Queenside,
-    possibleCastleMoves
+    possibleCastleMoves,
+    player
   );
   // Kingside
   getCastleMoves(
     _chessState,
     srcPosition,
     CastleSide.Kingside,
-    possibleCastleMoves
+    possibleCastleMoves,
+    player
   );
 
   // check if the castle move places the king under check
@@ -568,8 +581,8 @@ function getPinsandCheckingPieces(
 }
 
 // returns whether the opponent king is under check
-function isOpponentKingUnderCheck(_chessState: BoardType) {
-  const opponentKingColor = getOpponentColor(_chessState.player);
+function isOpponentKingUnderCheck(_chessState: BoardType, player: Color) {
+  const opponentKingColor = getOpponentColor(player);
   const opponentKingPosition =
     opponentKingColor === Color.White
       ? _chessState.whiteKingPos

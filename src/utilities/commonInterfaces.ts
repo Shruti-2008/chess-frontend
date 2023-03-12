@@ -39,6 +39,7 @@ interface MoveResponse {
   last_move_start: number[] | null;
   last_move_end: number[] | null;
   move_history: string[];
+  steps: string[];
   white_king_pos: number[];
   black_king_pos: number[];
   castle_eligibility: boolean[];
@@ -61,6 +62,7 @@ interface GameOverviewIn {
 }
 
 interface GameDetailsIn {
+  id: number;
   board: string;
   white_player: string;
   black_player: string;
@@ -70,7 +72,17 @@ interface GameDetailsIn {
   last_move_start: number[] | null;
   last_move_end: number[] | null;
   move_history: string[];
+  steps: string[];
   Capture: CaptureResponse;
+
+  player_color: string;
+  active_player: string;
+  enpassant_position: number[];
+  white_king_pos: number[];
+  black_king_pos: number[];
+  castle_eligibility: boolean[];
+  is_concluded: boolean;
+  draw: number | null;
 }
 //#endregion
 
@@ -118,24 +130,17 @@ interface GameOverview {
 }
 
 interface GameDetails {
-  board: string[][];
+  chessState: BoardType;
   whitePlayer: string;
   blackPlayer: string;
-  winner: number;
+  player: Color;
+  activePlayer: Color;
   result: string;
-  endReason: string;
-  checkedKing: Color | null;
-  lastMove: MovePosition | null;
-  moves: string[][];
-  capturedWhite: Captures[];
-  capturedBlack: Captures[];
   flipBoard: boolean;
 }
 
 interface BoardType {
   gameId: number;
-  player: Color;
-  activePlayer: Color;
   board: string[][];
   capturedWhite: Captures[];
   capturedBlack: Captures[];
@@ -144,6 +149,7 @@ interface BoardType {
   enPassantPawnPosition: Position[];
   lastMove: MovePosition | null;
   playedMoves: string[][];
+  steps: string[];
   checkedKing: Color | null;
   isConcluded: boolean;
   endReason: EndReason | null;
@@ -181,10 +187,13 @@ interface ChessboardProps {
     valid: boolean
   ) => void;
   flipBoard: boolean;
-  activePlayer: Color;
+  // activePlayer: Color;
   whitePlayer: string;
   blackPlayer: string;
   showNavigation: boolean;
+  handleFirstButtonClick?: () => void;
+  handleNextButtonClick?: () => void;
+  handleLastButtonClick?: () => void;
 }
 
 interface TileProps {
@@ -233,6 +242,12 @@ interface ModalProps {
   message: string;
   buttons: { label: string; handleButtonClick: () => void }[];
 }
+
+interface NavigationProps {
+  handleFirstButtonClick?: () => void;
+  handleNextButtonClick?: () => void;
+  handleLastButtonClick?: () => void;
+}
 //#endregion
 
 export type {
@@ -258,4 +273,5 @@ export type {
   EndGameProps,
   PromotionModalProps,
   ModalProps,
+  NavigationProps,
 };
