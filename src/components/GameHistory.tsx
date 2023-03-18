@@ -12,9 +12,9 @@ function GameHistory() {
   const [errorText, setErrorText] = useState("");
 
   const gridHeaderStyle =
-    "border-b-4 border-slate-400 border-collapse md:text-lg lg:text-xl xl:text-2xl font-bold bg-gradient-to-b from-amber-400 to-amber-200 p-2 text-center lg:p-6 md:p-4 flex items-center justify-center";
+    "border-b-4 border-slate-400 border-collapse  font-bold bg-gradient-to-b from-amber-400 to-amber-200 p-2 text-center md:p-4 flex items-center justify-center";
   const gridItemStyle =
-    "border-b-2 border-slate-400 border-collapse bg-slate-200 text-center p-2 group-hover:bg-gradient-to-b group-hover:from-amber-200 group-hover:to-amber-50 group-hover:border-y-4 group-hover:border-amber-200 transition duration-300 md:text-lg lg:text-xl xl:text-2xl lg:p-8 md:p-4";
+    "border-b-2 border-slate-400 border-collapse bg-slate-200 text-center p-2 group-hover:bg-gradient-to-b group-hover:from-amber-200 group-hover:to-amber-50 group-hover:border-y-4 group-hover:border-amber-200 transition duration-300  md:p-3 md:px-4";
 
   useEffect(() => {
     try {
@@ -96,7 +96,7 @@ function GameHistory() {
             {gridTiles}
           </div>
         ) : (
-          <div className="rounded-xl bg-gradient-to-b from-amber-200 to-amber-400 p-4 text-center text-lg font-semibold shadow-xl sm:text-xl lg:p-8 lg:text-2xl">
+          <div className="rounded-xl bg-gradient-to-b from-amber-200 to-amber-400 p-4 text-center font-semibold shadow-xl sm:text-lg lg:p-8">
             You do not have any concluded games
           </div>
         )}

@@ -339,7 +339,7 @@ function Referee() {
             t.visible ? "animate-enter" : "animate-leave"
           } relative flex w-full max-w-md translate-y-0 flex-row items-center justify-center rounded-xl bg-gradient-to-b from-amber-400 to-amber-100 px-4 py-6 text-gray-900 shadow-2xl hover:translate-y-1 hover:shadow-none`}
         >
-          <div className="text-3xl md:text-5xl">{icon}</div>
+          <div className="text-5xl">{icon}</div>
           <div className="ml-4 flex cursor-default flex-col items-start justify-center sm:ml-6">
             <h1 className="text-base font-semibold leading-none tracking-wider text-gray-900 sm:text-lg md:text-xl">
               {title}

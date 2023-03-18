@@ -121,7 +121,7 @@ const getUserStats = async () => {
 
 // return list of users who do not currently have an active game
 const getEligibleOpponents = async () => {
-  const response = await api.get("/users");
+  const response = await api.get("/users/");
   return response;
 };
 

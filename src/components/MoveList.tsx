@@ -2,7 +2,7 @@ import { MoveListProps } from "../utilities/commonInterfaces";
 
 const MoveList = ({ moves, addEmptyRows }: MoveListProps) => {
   const gridTileStyle =
-    "bg-slate-200 text-center p-2 text-base sm:text-lg lg:text-xl border-b-2 border-slate-300";
+    "bg-slate-200 text-center p-2 text-base border-b-2 border-slate-300";
 
   let moveSet: JSX.Element[] = [];
   moves.forEach((move, i) => {

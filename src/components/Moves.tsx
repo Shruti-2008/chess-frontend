@@ -14,9 +14,9 @@ const Moves = ({
   const buttonBg = isConcluded
     ? " from-slate-200 to-slate-200 cursor-not-allowed"
     : " from-amber-400 to-amber-100 hover:ring-4 hover:ring-amber-100 hover:ring-offset-2 hover:ring-offset-amber-100 cursor-pointer";
-  const buttonStyle = `p-2 md:p-4 text-center font-semibold rounded-lg shadow-lg bg-gradient-to-t transition duration-300 flex flex-row items-center justify-center gap-2 lg:gap-0.5 xl:gap-2 text-base md:text-lg xl:text-xl grow h-8 w-8 box-content ${buttonBg}`;
+  const buttonStyle = `p-2 md:px-4 text-center font-semibold rounded-lg shadow-lg bg-gradient-to-t transition duration-300 flex flex-row items-center justify-center gap-2 lg:gap-0.5 xl:gap-2 text-base grow h-8 w-8 box-content ${buttonBg}`;
   const gridHeaderStyle =
-    "text-center text-lg lg:text-xl bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
+    "text-center bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
 
   useEffect(() => {
     if (moveRef.current) {
@@ -40,9 +40,9 @@ const Moves = ({
   }
 
   return (
-    <div className="flex w-full flex-col gap-4 p-4 md:gap-8 lg:flex-col">
+    <div className="flex w-full flex-col gap-4 p-4 md:gap-6 lg:flex-col">
       <div className="flex flex-col gap-3.5">
-        <div className="flex w-full flex-row gap-4 lg:gap-8">
+        <div className="flex w-full flex-row gap-4 lg:gap-6">
           <button
             className={buttonStyle}
             onClick={handleDrawRequest}
@@ -72,9 +72,7 @@ const Moves = ({
           ref={resignRef}
           className="relative hidden flex-col gap-4 rounded-xl border-2 border-black bg-slate-100 p-2 after:absolute after:right-7 after:-top-4 after:border-t-0 after:border-r-16 after:border-l-16 after:border-b-16 after:border-x-transparent after:border-b-black lg:p-4"
         >
-          <p className="text-center text-lg sm:text-xl">
-            Are you sure you want to resign?
-          </p>
+          <p className="text-center ">Are you sure you want to resign?</p>
           <div className="flex flex-row justify-center gap-4">
             <button className={buttonStyle} onClick={confirmResign}>
               Yes
@@ -87,7 +85,7 @@ const Moves = ({
       </div>
 
       <div className="flex h-full max-h-full w-full flex-col">
-        <div className="w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-200 p-2 text-center text-lg font-semibold shadow-lg shadow-slate-300 lg:text-xl">
+        <div className="w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-200 p-2 text-center font-semibold shadow-lg shadow-slate-300">
           Moves
         </div>
         <div className="grid grid-cols-3">

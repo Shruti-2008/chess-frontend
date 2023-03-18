@@ -40,7 +40,7 @@ function UserProfile() {
   }, []);
 
   const styleHeader =
-    "rounded-lg bg-gradient-to-b from-slate-400 to-slate-500 p-2 font-medium uppercase text-white text-lg shadow-slate-400 drop-shadow-xl ";
+    "rounded-lg bg-gradient-to-b from-slate-400 to-slate-500 p-2 font-medium uppercase text-white  shadow-slate-400 drop-shadow-xl ";
 
   let statsList: JSX.Element[] = [];
   stats?.forEach((stat, idx) => {
@@ -51,7 +51,7 @@ function UserProfile() {
       >
         <div className={styleHeader}>{stat.result}</div>
         <div className="">
-          <p className="text-2xl font-medium">{stat.count}</p>
+          <p className="text-xl font-medium">{stat.count}</p>
         </div>
       </div>
     );
@@ -66,7 +66,7 @@ function UserProfile() {
     <ErrorPage {...errorPageProps} />
   ) : (
     <div className="flex w-full flex-col items-center justify-center gap-8 p-4 pt-8">
-      <div className=" w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-200 p-4 text-center text-2xl font-semibold shadow-inner shadow-amber-200 md:w-2/3 lg:w-3/5">
+      <div className=" w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-200 p-4 text-center text-lg font-semibold shadow-inner shadow-amber-200 md:w-2/3 lg:w-3/5">
         My Statistics
       </div>
       <div className="flex w-full flex-col flex-wrap justify-between gap-8 md:w-2/3 md:flex-row lg:w-3/5">

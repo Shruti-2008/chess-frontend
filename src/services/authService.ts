@@ -22,7 +22,7 @@ const logout = () => {
 };
 
 const signup = async (email: string, password: string) => {
-  const response = await api.post("/users", { email, password });
+  const response = await api.post("/users/", { email, password });
   TokenService.setUser({ ...response.data, username: email });
   return response;
 };

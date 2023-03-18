@@ -6,7 +6,7 @@ import { IMAGE_LOC } from "../Constants";
 function Home() {
   const auth = TokenService.getAccessToken();
   const buttonStyle =
-    "w-full rounded-lg from-amber-400 to-amber-200 bg-gradient-to-t px-8 py-4 text-center text-xl xl:text-2xl font-semibold shadow-lg transition duration-300 hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 md:w-44";
+    "w-full rounded-lg from-amber-400 to-amber-200 bg-gradient-to-t px-6 py-4 text-center text-lg font-semibold shadow-lg transition duration-300 hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 md:w-40";
 
   const handleLogout = () => {
     AuthService.logout();

@@ -10,7 +10,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   const buttonStyle =
-    "m-2 w-24 rounded-lg from-amber-400 to-amber-200 bg-gradient-to-t py-4 text-center text-lg lg:text-xl font-semibold shadow-lg transition duration-300 hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 lg:m-3 xl:m-4 lg:w-36";
+    "m-2 w-24 rounded-lg from-amber-400 to-amber-200 bg-gradient-to-t py-3 text-center text-lg font-semibold shadow-lg transition duration-300 hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 lg:m-3 xl:m-4 md:w-30 lg:w-32 xl:w-36";
   const collapsibleMenuStyle =
     "block cursor-pointer border-y-2 border-slate-400 bg-slate-200 p-2 transition duration-300 hover:bg-amber-300 active:bg-amber-200";
 
@@ -31,7 +31,7 @@ function Navbar() {
       <div className="flex w-full flex-col">
         <div className="flex h-20 w-full items-center justify-center md:h-32">
           <button
-            className="group absolute left-4 flex h-10 transition duration-300 hover:h-12 md:h-16 hover:md:h-20 xl:left-8"
+            className="group absolute left-4 flex h-10 transition duration-300 hover:h-12 md:h-14 hover:md:h-16 xl:left-8"
             onClick={navigateBack}
           >
             <img

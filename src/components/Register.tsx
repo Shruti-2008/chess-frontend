@@ -60,25 +60,22 @@ function Register() {
   }
 
   return (
-    <div className="m-auto h-full w-full p-6 text-lg">
+    <div className="m-auto h-full w-full p-6">
       <form
         onSubmit={(e) => handleSubmit(e)}
-        className="m-auto box-border w-full rounded-xl bg-slate-200 px-2 py-6 text-lg shadow-2xl md:w-4/5 md:py-12 lg:w-2/3 xl:w-1/2"
+        className="m-auto box-border w-full rounded-xl bg-slate-200 px-2 py-6 shadow-2xl md:w-4/5 md:py-8 lg:w-2/3 xl:w-1/2"
       >
-        <div className="mx-4 flex flex-col justify-between space-y-20 md:mx-auto md:w-4/5 md:max-w-lg">
+        <div className="mx-4 flex flex-col justify-between space-y-16 md:mx-auto md:w-4/5 md:max-w-lg">
           <div className="flex flex-col justify-between">
             {errorText && (
               <div
                 ref={errRef}
-                className="mb-4 rounded-lg border-2 border-red-500 bg-red-100 p-2 font-semibold text-red-500 shadow-md lg:text-xl"
+                className="mb-4 rounded-lg border-2 border-red-500 bg-red-100 p-2 font-semibold text-red-500 shadow-md"
               >
                 {errorText}
               </div>
             )}
-            <label
-              htmlFor="email"
-              className="py-2 text-xl font-semibold lg:text-2xl"
-            >
+            <label htmlFor="email" className="py-2 text-lg font-semibold">
               Email
             </label>
             <input
@@ -86,7 +83,7 @@ function Register() {
               type="email"
               name="email"
               value={formData.email}
-              className="rounded-lg border-2 border-slate-300 p-2 lg:text-xl"
+              className="rounded-lg border-2 border-slate-300 p-2"
               onChange={(e) => handleChange(e)}
               required
               autoFocus
@@ -94,7 +91,7 @@ function Register() {
 
             <label
               htmlFor="password"
-              className="mt-8 py-2 text-xl font-semibold lg:text-2xl"
+              className="mt-8 py-2 text-lg font-semibold"
             >
               Password
             </label>
@@ -103,7 +100,7 @@ function Register() {
               type="password"
               name="password"
               value={formData.password}
-              className="rounded-lg border-2 border-slate-300 p-2 lg:text-xl"
+              className="rounded-lg border-2 border-slate-300 p-2"
               onChange={(e) => handleChange(e)}
               required
             />
@@ -114,7 +111,7 @@ function Register() {
             </p>
             <label
               htmlFor="confirmPassword"
-              className="mt-8 py-2 text-xl font-semibold lg:text-2xl"
+              className="mt-8 py-2 text-lg font-semibold"
             >
               Confirm Password
             </label>
@@ -123,7 +120,7 @@ function Register() {
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
-              className="rounded-lg border-2 border-slate-300 p-2 lg:text-xl"
+              className="rounded-lg border-2 border-slate-300 p-2"
               onChange={(e) => handleChange(e)}
               disabled={
                 formData.password.length === 0 || !re.test(formData.password)
@@ -145,14 +142,14 @@ function Register() {
                   : "Passwords don't match")}
             </p>
           </div>
-          <div className="flex flex-col justify-between space-y-10">
+          <div className="flex flex-col justify-between space-y-8">
             <button
               type="submit"
-              className="rounded-lg bg-gradient-to-t from-amber-400 to-amber-200 px-8 py-4 text-xl font-semibold shadow-lg hover:ring-4 hover:ring-amber-300 hover:ring-offset-2 hover:ring-offset-amber-200 lg:text-2xl"
+              className="rounded-lg bg-gradient-to-t from-amber-400 to-amber-200 px-8 py-4 text-xl font-semibold shadow-lg hover:ring-4 hover:ring-amber-300 hover:ring-offset-2 hover:ring-offset-amber-200"
             >
               Sign up
             </button>
-            <p className="text-center lg:text-xl">
+            <p className="text-center">
               Already have an account?{" "}
               <Link
                 to="/login"

@@ -10,7 +10,7 @@ import { ImNotification } from "react-icons/im";
 
 function Menu() {
   const buttonStyle =
-    "p-6 text-center align-middle rounded-xl shadow-lg from-amber-400 to-amber-200 bg-gradient-to-t text-lg md:text-2xl hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 transition duration-300";
+    "p-6 text-center align-middle rounded-xl shadow-lg from-amber-400 to-amber-200 bg-gradient-to-t text-lg hover:ring-4 hover:ring-amber-200 hover:ring-offset-2 hover:ring-offset-amber-200 transition duration-300";
 
   const [users, setUsers] = useState<OpponentUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<OpponentUser[]>([]);
@@ -156,7 +156,7 @@ function Menu() {
         id={user.email}
         value={user.id}
         onClick={(e) => handleClick(e)}
-        className={`no-scrollbar my-2 flex w-full items-center gap-4 overflow-x-auto rounded-md border-2 border-solid border-slate-200 p-2 shadow-md transition duration-300 md:text-lg xl:text-xl ${selectedStyle}`}
+        className={`no-scrollbar my-2 flex w-full items-center gap-4 overflow-x-auto rounded-md border-2 border-solid border-slate-200 p-2 shadow-md transition duration-300 md:text-lg ${selectedStyle}`}
       >
         <img
           src={`${IMAGE_LOC}user_slate_300.png`}
@@ -227,14 +227,14 @@ function Menu() {
             t.visible ? "animate-enter" : "animate-leave"
           } relative flex w-full max-w-md translate-y-0 flex-row items-center justify-center rounded-xl bg-gradient-to-b from-amber-400 to-amber-100 px-4 py-6 text-gray-900 shadow-2xl hover:translate-y-1 hover:shadow-none`}
         >
-          <div className="text-3xl md:text-5xl">
+          <div className="text-2xl md:text-4xl">
             <ImNotification />
           </div>
           <div className="ml-4 flex cursor-default flex-col items-start justify-center sm:ml-6">
-            <h1 className="text-base font-semibold leading-none tracking-wider text-gray-900 sm:text-lg md:text-xl">
+            <h1 className="text-base font-semibold leading-none tracking-wider text-gray-900 sm:text-lg">
               {title}
             </h1>
-            <p className="mt-2 text-sm leading-relaxed tracking-wider text-gray-600 sm:text-base md:text-lg">
+            <p className="mt-2 text-sm leading-relaxed tracking-wider text-gray-600 sm:text-base">
               {message}
             </p>
           </div>
@@ -251,10 +251,10 @@ function Menu() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full flex-col gap-16 px-4 py-8 font-semibold md:w-3/5 md:text-xl lg:w-3/5 xl:w-1/3">
+    <div className="mx-auto flex h-full w-full flex-col gap-16 px-4 py-8 font-semibold md:w-3/5 lg:w-2/5 xl:w-1/3">
       <Toaster />
       {errorText && (
-        <div className="mb-4 rounded-lg border-2 border-red-500 bg-red-100 p-2 text-center font-semibold text-red-500 shadow-md">
+        <div className="mb-4 rounded-lg border-2 border-red-500 bg-red-100 p-2 text-center font-semibold text-red-500 shadow-md sm:text-base">
           Could not verify active game. {errorText}
         </div>
       )}
@@ -290,7 +290,7 @@ function Menu() {
             <div className="relative flex items-center">
               <label
                 htmlFor="opponent"
-                className="flex-1 text-center text-lg md:text-xl lg:py-2 xl:text-2xl"
+                className="flex-1 text-center text-lg lg:py-2"
               >
                 Select Opponent
               </label>
@@ -313,7 +313,7 @@ function Menu() {
               onChange={(e) => handleChange(e)}
               type="text"
               placeholder="Search..."
-              className="rounded-lg border-2 border-slate-300 p-2 text-slate-500 focus:border-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300 md:text-lg xl:text-xl"
+              className="rounded-lg border-2 border-slate-300 p-2 text-slate-500 focus:border-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
             />
             <div className="flex-1 overflow-y-auto rounded-lg border-2 border-amber-300 px-2 font-normal">
               {userList}

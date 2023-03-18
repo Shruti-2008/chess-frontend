@@ -102,7 +102,7 @@ function Chessboard({
         <div className="flex h-full w-full justify-start">
           {flipBoard ? userCardWhite : userCardBlack}
         </div>
-        <div className="m-auto box-border grid aspect-square w-full max-w-4xl grow grid-cols-8 border-8 border-slate-500">
+        <div className="m-auto box-border grid aspect-square w-full max-w-2xl grow grid-cols-8 border-8 border-slate-500">
           {tiles}
         </div>
         <div

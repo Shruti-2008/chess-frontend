@@ -60,7 +60,7 @@ function UserCard({
       className={`flex w-full flex-col justify-center gap-2 bg-gradient-to-b from-amber-300 to-amber-100 p-1 md:w-3/5 lg:w-1/2 lg:p-2 xl:w-2/5 ${cardPosition} rounded-lg shadow-lg shadow-stone-500/50`}
     >
       <details className="group flex">
-        <summary className=" flex items-center gap-2 rounded-r-full bg-gradient-to-r from-amber-100 to-amber-200 py-2 px-2 text-slate-700 ">
+        <summary className=" flex items-center gap-2 rounded-r-full bg-gradient-to-r from-amber-100 to-amber-200 p-2 text-slate-700 ">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -78,9 +78,9 @@ function UserCard({
           <img
             src="../../assets/images/user_slate_400.png"
             alt="captured_pieces"
-            className="h-8 max-h-12 object-contain lg:h-10"
+            className="h-6 max-h-12 object-contain lg:h-8"
           />
-          <p className="overflow-x-auto text-sm font-medium sm:text-base md:text-base lg:text-lg xl:text-xl">
+          <p className="overflow-x-auto text-sm font-medium sm:text-base md:text-base">
             {username}
           </p>
         </summary>

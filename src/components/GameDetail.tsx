@@ -78,9 +78,9 @@ function GameDetail() {
   const statHeaderStyle =
     "bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 rounded-lg drop-shadow-xl shadow-slate-400";
   const statTileStyle =
-    "grow bg-slate-200 rounded-lg shadow-lg shadow-slate-100 p-2 lg:p-4 text-lg text-center font-semibold md:text-xl flex flex-col gap-4";
+    "grow bg-slate-200 rounded-lg shadow-lg shadow-slate-100 p-2 lg:p-4 text-center font-semibold flex flex-col gap-4";
   const gridHeaderStyle =
-    "text-center text-lg lg:text-xl bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
+    "text-center bg-gradient-to-b from-slate-400 to-slate-500 text-white font-semibold p-2 ";
 
   function handleFirstButtonClick() {
     const state = getInitialChessState(Number(id));
@@ -152,8 +152,8 @@ function GameDetail() {
       <div className="mx-auto w-full">
         <div className="grid w-full grid-rows-2 lg:grid-cols-[3fr_1fr] lg:grid-rows-1 xl:p-4">
           <Chessboard {...boardProps} />
-          <div className="flex w-full flex-col-reverse gap-4 p-4 lg:flex-col lg:gap-12">
-            <div className="grid w-full grid-rows-[max-content_max-content] gap-6 lg:gap-12">
+          <div className="flex w-full flex-col-reverse gap-4 p-4 lg:flex-col lg:gap-6">
+            <div className="grid w-full grid-rows-[max-content_max-content] gap-6 lg:gap-6">
               <div className={statTileStyle}>
                 <div className={statHeaderStyle}>Result</div>
                 <div>{game.result}</div>
@@ -168,7 +168,7 @@ function GameDetail() {
               </div>
             </div>
             <div className="mx-auto flex w-full grow flex-col rounded-lg ">
-              <div className="w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-200 p-2 text-center text-lg font-semibold shadow-lg shadow-slate-300 lg:text-xl">
+              <div className="w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-200 p-2 text-center font-semibold shadow-lg shadow-slate-300">
                 Moves
               </div>
               <div className="grid grid-cols-3">
